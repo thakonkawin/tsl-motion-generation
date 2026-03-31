@@ -1,1 +1,7 @@
-# tsl-motion-generation
+
+
+
+## Install
+```bash
+bash scripts/install.sh
+```

@@ -1,0 +1,8 @@
+/assets
+/example
+/temp_local
+__pycache__/
+**/.DS_Store
+.vscode/
+/blender
+/docs
