@@ -369,9 +369,31 @@ def debug_tensor(name, x):
 # add-new
 from scipy.spatial.transform import Rotation as R
 
+# def rotmat_to_aa(rotmat):
+#     r = R.from_matrix(rotmat)
+#     return r.as_rotvec()
+
 def rotmat_to_aa(rotmat):
+    rotmat = np.asarray(rotmat)
+
+    # 👉 รองรับ batch / multi-joint
+    if rotmat.ndim == 2:
+        rotmat = rotmat.reshape(1, 3, 3)
+
+    assert rotmat.shape[-2:] == (3, 3), f"Invalid shape {rotmat.shape}"
+
+    # 🔥 FIX: orthonormalize ทุก matrix ก่อน
+    def orthonormalize(R):
+        U, _, Vt = np.linalg.svd(R)
+        return U @ Vt
+
+    rotmat = np.stack([orthonormalize(r) for r in rotmat], axis=0)
+
+    # 👉 ค่อย convert
     r = R.from_matrix(rotmat)
-    return r.as_rotvec()
+    aa = r.as_rotvec()
+
+    return aa
 
 # @spaces.GPU
 @torch.no_grad()
@@ -586,27 +608,6 @@ def mesh_inference(temp_dir, video_name, fps):
 
     print(f"✅ EHM processing completed.")
 
-
-
-def debug_gpu_stack():
-    import torch
-    import decord
-    from decord import gpu, cpu
-    from pytorch3d import _C
-
-    print("===== DEBUG GPU STACK =====")
-    print("Torch CUDA:", torch.cuda.is_available())
-
-    try:
-        print("Decord GPU:", gpu(0))
-        print("Decord CPU:", cpu(0))
-    except Exception as e:
-        print("Decord GPU FAIL:", e)
-
-    print("Pytorch3D rasterize:", hasattr(_C, "rasterize_meshes"))
-    print("===========================")
-
-debug_gpu_stack()
 
 import traceback
 

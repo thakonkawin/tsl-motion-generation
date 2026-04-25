@@ -74,13 +74,6 @@ scene.render.resolution_x, scene.render.resolution_y = CONFIG["render"]["resolut
 scene.render.resolution_percentage = 100
 scene.render.use_file_extension = True
 
-# 5) Camera
-# camera = scene.camera or get_first_object("CAMERA")
-# if camera is None:
-#     raise RuntimeError("No camera found in scene")
-
-# scene.camera = camera
-# camera.location = CONFIG["camera_location"]
 
 # 6) SMPL-X armature (must be active)
 armature = get_first_object("ARMATURE")
@@ -90,30 +83,6 @@ if armature is None:
 set_active(armature)
 print("Using armature:", armature.name)
 
-
-# FRAMES_PER_POSE = 10
-# TOTAL_FRAMES = 60
-
-# for frame in range(1, TOTAL_FRAMES + 1):
-
-#     # คำนวณว่าอยู่ block ไหน
-#     block_index = (frame - 1) // FRAMES_PER_POSE
-
-#     # block คู่ = pose1, block คี่ = pose2
-#     pose_path = CONFIG["pose_file"] if block_index % 2 == 0 else CONFIG["pose_file2"]
-
-#     # load pose
-#     bpy.ops.object.smplx_load_pose(filepath=pose_path)
-
-#     # output path
-#     output_path = os.path.join(CONFIG["output_dir"], f"frame_{frame:03d}.png")
-#     scene.render.filepath = output_path
-
-#     # render
-#     bpy.ops.render.render(write_still=True)
-#     print(f"Frame {frame:03d} -> {os.path.basename(pose_path)}")
-
-# print("Render finished 🎬")
 
 # # 7) Load pose + render
 bpy.ops.object.smplx_load_pose(filepath=CONFIG["pose_file"])
