@@ -1,0 +1,98 @@
+{
+    "tsl_dictionaries": [
+        {
+            "sign_id": "AB0001",
+            "smplx": [
+                {
+                    "num_frames": "frame_0001",
+                    "bebetas": [],
+                    "global_orient": [],
+                    "body_pose": [],
+                    "left_hand_pose": [],
+                    "right_hand_pose": [],
+                    "jaw_pose": [],
+                    "leye_pose": [],
+                    "reye_pose": [],
+                    "transl": []
+                },
+                {
+                    "num_frames": "frame_0002",
+                    "bebetas": [],
+                    "global_orient": [],
+                    "body_pose": [],
+                    "left_hand_pose": [],
+                    "right_hand_pose": [],
+                    "jaw_pose": [],
+                    "leye_pose": [],
+                    "reye_pose": [],
+                    "transl": []
+                }
+            ],
+            "keypoints_2d": [
+                {
+                    "num_frames": "frame_0001",
+                    "pose": [],
+                    "left_hand": [],
+                    "right_hand": [],
+                    "face": [],
+                    "foot": []
+                },
+                {
+                    "num_frames": "frame_0002",
+                    "pose": [],
+                    "left_hand": [],
+                    "right_hand": [],
+                    "face": [],
+                    "foot": []
+                }
+            ]
+        },
+        {
+            "sign_id": "AB0002",
+            "smplx": [
+                {
+                    "num_frames": "frame_0001",
+                    "bebetas": [],
+                    "global_orient": [],
+                    "body_pose": [],
+                    "left_hand_pose": [],
+                    "right_hand_pose": [],
+                    "jaw_pose": [],
+                    "leye_pose": [],
+                    "reye_pose": [],
+                    "transl": []
+                },
+                {
+                    "num_frames": "frame_0002",
+                    "bebetas": [],
+                    "global_orient": [],
+                    "body_pose": [],
+                    "left_hand_pose": [],
+                    "right_hand_pose": [],
+                    "jaw_pose": [],
+                    "leye_pose": [],
+                    "reye_pose": [],
+                    "transl": []
+                }
+            ],
+            "keypoints_2d": [
+                {
+                    "num_frames": "frame_0001",
+                    "pose": [],
+                    "left_hand": [],
+                    "right_hand": [],
+                    "face": [],
+                    "foot": []
+                },
+                {
+                    "num_frames": "frame_0002",
+                    "pose": [],
+                    "left_hand": [],
+                    "right_hand": [],
+                    "face": [],
+                    "foot": []
+                }
+            ]
+        }
+    ]
+}

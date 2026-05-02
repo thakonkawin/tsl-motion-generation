@@ -50,7 +50,7 @@ def build_sentence_tab():
                     gr.Markdown("### Resolution")
                     gr.Radio([512, 720, 1080], value=512, label="Resolution", interactive=True)
 
-                generate_button = gr.Button("Generate", variant="primary")
+                generate_btn = gr.Button("Generate", variant="primary")
 
             with gr.Column(scale=2): 
                 gr.Textbox(label=f"Gloss sequence")
