@@ -4,7 +4,7 @@
 __pycache__/
 **/.DS_Store
 .vscode/
-/blender
+**/blender
 /docs
 **/.gradio
 /motions
@@ -13,5 +13,6 @@ __pycache__/
 **/data
 **/upload
 **/datasets
-
-# */TestPose
+**/human_model_files
+**/pretrained_models
+**/tmp

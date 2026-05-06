@@ -1,7 +1,8 @@
 import gradio as gr
-from gui.sentence_tap import build_sentence_tab
-from gui.word_tap import build_word_tab
-from gui.setting_tap import build_setting_tab
+from gui.components.sentence_ui import build_sentence_tab
+from gui.components.word_ui import build_word_tab
+from gui.components.extract_ui import build_extract_tab
+import os
 
 theme = gr.themes.Soft(primary_hue="orange")
 
@@ -45,6 +46,8 @@ with gr.Blocks(
     with gr.Tabs():
         build_sentence_tab()
         build_word_tab()
-        build_setting_tab()
+        build_extract_tab()
 
-demo.launch()
+demo.launch(
+     allowed_paths=[os.path.abspath("../upload")]
+)

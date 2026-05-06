@@ -1,7 +1,0 @@
-
-
-python demo.py --model-folder ../models --gender="neutral"
-
-python inspect_pkl.py ./POSA_rp_poses/rp_carla_posed_002_0_0.pkl
-
-python inspect_pkl.py ./smplx_params/frame_0004.pkl
