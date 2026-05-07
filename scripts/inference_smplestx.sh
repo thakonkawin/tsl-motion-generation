@@ -45,8 +45,16 @@ esac
 END_COUNT=$(find "$IMG_PATH" -type f | wc -l)
 
 # -------- inference --------
+# PYTHONPATH="$ROOT_DIR/SMPLest-X:$PYTHONPATH" \
+# conda run -n smplestx_v3 python "$ROOT_DIR/SMPLest-X/main/inference.py" \
+#     --num_gpus 1 \
+#     --file_name "$NAME" \
+#     --ckpt_name "$CKPT_NAME" \
+#     --end "$END_COUNT"
+cd "$ROOT_DIR" && \
 PYTHONPATH="$ROOT_DIR/SMPLest-X:$PYTHONPATH" \
-conda run -n smplestx_v3 python "$ROOT_DIR/SMPLest-X/main/inference.py" \
+conda run -n smplestx_v3 --no-capture-output \
+    python "$ROOT_DIR/SMPLest-X/main/inference.py" \
     --num_gpus 1 \
     --file_name "$NAME" \
     --ckpt_name "$CKPT_NAME" \

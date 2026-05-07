@@ -49,5 +49,5 @@ with gr.Blocks(
         build_extract_tab()
 
 demo.launch(
-     allowed_paths=[os.path.abspath("../upload")]
+     allowed_paths=[os.path.abspath("../upload"), os.path.abspath("../tmp")]
 )

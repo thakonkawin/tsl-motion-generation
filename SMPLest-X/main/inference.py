@@ -38,7 +38,6 @@ def save_smplx_params_correct(out, save_path):
 
     global_orient = to_np(out['smplx_root_pose']).reshape(1, 3).astype(np.float32)
 
-    # 🔥 FIX ตรงนี้
     global_orient[:, 0] += np.pi   # flip 180° around X
 
     data = {
