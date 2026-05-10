@@ -1,7 +1,5 @@
 import gradio as gr
-
-from gui.handlers.sentence_handler import    generate_tsl
-
+from src.controllers.sentence_controller import generate_tsl
 
 def build_sentence_tab():
     with gr.Tab("Sentences"):

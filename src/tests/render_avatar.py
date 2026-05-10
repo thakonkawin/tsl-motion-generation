@@ -110,7 +110,7 @@ def render_avatar(
     print("Using armature:", armature.name)
 
     # 7) Load pose + render
-    # bpy.ops.object.smplx_load_pose(filepath=pose_file)
+    bpy.ops.object.smplx_load_pose(filepath=pose_file)
     bpy.ops.render.render()
 
     # 8) Save result

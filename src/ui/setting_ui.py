@@ -1,26 +1,22 @@
-
 import gradio as gr
-
-from gui.handlers.extract_handler import (
-    upload,
-    reconstruct_human,
-    extract_keypoint,
-    save_data
+from src.controllers.setting_controller import (
+    upload_sign_video_controller,
+    extract_keypoint_controller,
+    reconstruct_3d_human_controller,
+    save_data_controller
 )
 
 def selected_frame(evt: gr.SelectData):
-    """รับ index ของ frame ที่ user คลิกใน Gallery"""
     frame_index = evt.index + 1
-    print(f"[selected_frame] index={frame_index}")
     return str(frame_index)
 
 
-def build_extract_tab():
-    with gr.Tab("Upload & Extract"):  # ✅ แก้จาก [gr.Tab](http://gr.Tab)
+def build_setting_tab():
+    with gr.Tab("Settings"): 
         with gr.Column():
             with gr.Row():
                 with gr.Column(scale=1):
-                    video_input = gr.Video(label="Upload video")  # ✅ แก้ URL format
+                    video_input = gr.Video(label="Upload video")
 
                 with gr.Column(scale=2):
                     with gr.Row():
@@ -28,7 +24,7 @@ def build_extract_tab():
                         fps = gr.Number(label="fps")
                         num_frames = gr.Number(label="num_frames")
 
-                    gallery = gr.Gallery(  # ✅ แก้ URL format
+                    gallery = gr.Gallery( 
                         label="Extracted Frames",
                         columns=8,
                         height=400,
@@ -51,7 +47,7 @@ def build_extract_tab():
                         elem_id="viz_container",
                         interactive=False,
                         autoplay=False,
-                        sources=None,  # hide upload / webcam buttons
+                        sources=None,
                     )
                 with gr.Column(scale=2):
                     keypoint_result = gr.Textbox(label="keypoint_result", interactive=False)
@@ -67,7 +63,7 @@ def build_extract_tab():
                         elem_id="viz_container",
                         interactive=False,
                         autoplay=False,
-                        sources=None,  # hide upload / webcam buttons
+                        sources=None,
                     )
                 with gr.Column(scale=2):
                     reconstruct_result = gr.Textbox(label="reconstruct_result", interactive=False)
@@ -76,7 +72,7 @@ def build_extract_tab():
 
 
         video_input.change(
-            fn=upload,
+            fn=upload_sign_video_controller,
             inputs=video_input,
             outputs=[vid, fps, gallery, num_frames],
         )
@@ -88,19 +84,19 @@ def build_extract_tab():
         )
 
         extract_keypoint_btn.click(
-            fn=extract_keypoint,
+            fn=extract_keypoint_controller,
             inputs=[vid, gloss, fps, num_frames, frame_start, frame_end],
             outputs=[],
         )
 
         reconstruct_3d_btn.click(
-            fn=reconstruct_human,
+            fn=reconstruct_3d_human_controller,
             inputs=[vid, gloss, fps, num_frames, frame_start, frame_end],
             outputs=[viz_video, reconstruct_result],
         )
 
         save_btn.click(
-            fn=save_data,
+            fn=save_data_controller,
             inputs=[vid, gloss, fps, num_frames, frame_start, frame_end],
             outputs=[],
         )
