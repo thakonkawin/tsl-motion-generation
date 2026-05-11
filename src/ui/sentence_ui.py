@@ -1,5 +1,5 @@
 import gradio as gr
-from src.controllers.sentence_controller import generate_tsl
+
 
 def build_sentence_tab():
     with gr.Tab("Sentences"):
@@ -12,20 +12,23 @@ def build_sentence_tab():
                     interactive=True,
                 )
 
-
                 generate_btn = gr.Button("Generate", variant="primary")
 
-            with gr.Column(scale=2): 
-                
-                viz_video = gr.Video( 
-                    label="TSL Video", 
-                    height=650, 
-                    elem_id="viz_container", 
-                    interactive=False, 
+            with gr.Column(scale=2):
+
+                viz_video = gr.Video(
+                    label="TSL Video",
+                    height=650,
+                    elem_id="viz_container",
+                    interactive=False,
                     autoplay=False,
                 )
-                
+
         generate_btn.click(
-            fn=generate_tsl,
+            fn=generate_tsl_controller,
             inputs=[gloss],
         )
+
+
+def generate_tsl_controller(gloss):
+    pass

@@ -9,10 +9,10 @@ import bpy
 
 from src.utils.path_manager import PathManager
 
-
 # ============================================================
 # Addon
 # ============================================================
+
 
 def _install_addon():
     addon_name = "smplx_blender_addon"
@@ -23,13 +23,9 @@ def _install_addon():
 
     print("[INFO] Installing SMPL-X addon...")
 
-    bpy.ops.preferences.addon_install(
-        filepath=str(PathManager.BLEND_ADDON_ZIP)
-    )
+    bpy.ops.preferences.addon_install(filepath=str(PathManager.BLEND_ADDON_ZIP))
 
-    bpy.ops.preferences.addon_enable(
-        module=addon_name
-    )
+    bpy.ops.preferences.addon_enable(module=addon_name)
 
     bpy.ops.wm.save_userpref()
 
@@ -37,6 +33,7 @@ def _install_addon():
 # ============================================================
 # Scene Helpers
 # ============================================================
+
 
 def _get_first_object(obj_type: str):
     for obj in bpy.context.scene.objects:
@@ -55,6 +52,7 @@ def _set_active(obj) -> None:
 # ============================================================
 # Render Device
 # ============================================================
+
 
 def _setup_device(device: str = "GPU") -> None:
     prefs = bpy.context.preferences
@@ -87,11 +85,9 @@ def _setup_device(device: str = "GPU") -> None:
 # Render Quality
 # ============================================================
 
+
 def _configure_render_quality(
-    scene,
-    resolution: tuple,
-    output_dir,
-    fast: bool = True
+    scene, resolution: tuple, output_dir, fast: bool = True
 ) -> None:
     """
     Configure Blender render settings safely.
@@ -180,19 +176,14 @@ def _configure_render_quality(
 # Main Render
 # ============================================================
 
-def render(
-    motion_id: str,
-    motion_lst: list,
-    resolution: tuple = (512, 512)
-):
+
+def render(motion_id: str, motion_lst: list, resolution: tuple = (512, 512)):
 
     print("[Render] Installing addon...")
     _install_addon()
 
     print("[Render] Opening blend file...")
-    bpy.ops.wm.open_mainfile(
-        filepath=str(PathManager.BLEND_FILE)
-    )
+    bpy.ops.wm.open_mainfile(filepath=str(PathManager.BLEND_FILE))
 
     # --------------------------------------------------
     # Fix missing files
@@ -201,9 +192,7 @@ def render(
 
     if addon_data_dir and os.path.isdir(addon_data_dir):
 
-        bpy.ops.file.find_missing_files(
-            directory=os.path.abspath(str(addon_data_dir))
-        )
+        bpy.ops.file.find_missing_files(directory=os.path.abspath(str(addon_data_dir)))
 
     # --------------------------------------------------
     # Scene
@@ -216,10 +205,7 @@ def render(
     frame_folder = PathManager.get_output_frame_dir(vid=motion_id)
 
     _configure_render_quality(
-        scene=scene,
-        resolution=resolution,
-        output_dir=frame_folder,
-        fast=True
+        scene=scene, resolution=resolution, output_dir=frame_folder, fast=True
     )
 
     # --------------------------------------------------
@@ -233,9 +219,7 @@ def render(
     armature = _get_first_object("ARMATURE")
 
     if armature is None:
-        raise RuntimeError(
-            "No ARMATURE found in scene — SMPL-X setup required."
-        )
+        raise RuntimeError("No ARMATURE found in scene — SMPL-X setup required.")
 
     _set_active(armature)
 
@@ -246,32 +230,18 @@ def render(
 
     for idx, motion_path in enumerate(motion_lst):
 
-        print(
-            f"[Render] Loading pose {idx + 1}/{total_frames}"
-        )
+        print(f"[Render] Loading pose {idx + 1}/{total_frames}")
 
-        bpy.ops.object.smplx_load_pose(
-            filepath=str(motion_path)
-        )
+        bpy.ops.object.smplx_load_pose(filepath=str(motion_path))
 
-        frame_path = PathManager.get_output_frame_path(
-            motion_id,
-            idx
-        )
+        frame_path = PathManager.get_output_frame_path(motion_id, idx)
 
         # IMPORTANT:
         # filepath must NOT include extension
-        scene.render.filepath = str(
-            frame_path.with_suffix("")
-        )
+        scene.render.filepath = str(frame_path.with_suffix(""))
 
-        bpy.ops.render.render(
-            write_still=True
-        )
+        bpy.ops.render.render(write_still=True)
 
-        print(
-            f"[Render] Saved frame "
-            f"{idx + 1}/{total_frames} → {frame_path}"
-        )
+        print(f"[Render] Saved frame " f"{idx + 1}/{total_frames} → {frame_path}")
 
     print("[Render] Completed")

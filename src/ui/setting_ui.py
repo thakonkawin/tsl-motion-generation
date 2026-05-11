@@ -1,10 +1,8 @@
 import gradio as gr
-from src.controllers.setting_controller import (
-    upload_sign_video_controller,
-    extract_keypoint_controller,
-    reconstruct_3d_human_controller,
-    save_data_controller
-)
+from src.const.errors import ERROR_MESSAGES, ErrorCode
+from src.services.dataset_service import DatasetService
+from src.services.reconstruct_service import ReconstructService
+
 
 def selected_frame(evt: gr.SelectData):
     frame_index = evt.index + 1
@@ -12,7 +10,7 @@ def selected_frame(evt: gr.SelectData):
 
 
 def build_setting_tab():
-    with gr.Tab("Settings"): 
+    with gr.Tab("Settings"):
         with gr.Column():
             with gr.Row():
                 with gr.Column(scale=1):
@@ -24,11 +22,11 @@ def build_setting_tab():
                         fps = gr.Number(label="fps")
                         num_frames = gr.Number(label="num_frames")
 
-                    gallery = gr.Gallery( 
+                    gallery = gr.Gallery(
                         label="Extracted Frames",
                         columns=8,
                         height=400,
-                        interactive=True
+                        interactive=True,
                     )
 
                     with gr.Row():
@@ -38,8 +36,9 @@ def build_setting_tab():
                         frame_end = gr.Number(label="frame_end", interactive=True)
 
             extract_keypoint_btn = gr.Button("Extract Keypoints", variant="primary")
+
             with gr.Row():
-                
+
                 with gr.Column(scale=1):
                     viz_video = gr.Video(
                         label="Skeleton Video",
@@ -50,12 +49,13 @@ def build_setting_tab():
                         sources=None,
                     )
                 with gr.Column(scale=2):
-                    keypoint_result = gr.Textbox(label="keypoint_result", interactive=False)
+                    keypoint_result = gr.Textbox(
+                        label="keypoint_result", interactive=False
+                    )
 
-                   
-            reconstruct_3d_btn = gr.Button("Reconstructe 3D", variant="primary")
+            reconstruct_mesh_btn = gr.Button("Reconstructe Mesh", variant="primary")
             with gr.Row():
-                
+
                 with gr.Column(scale=1):
                     viz_video = gr.Video(
                         label="Reconstructed Human Mesh Video",
@@ -66,12 +66,27 @@ def build_setting_tab():
                         sources=None,
                     )
                 with gr.Column(scale=2):
-                    reconstruct_result = gr.Textbox(label="reconstruct_result", interactive=False)
+                    reconstruct_result = gr.Textbox(
+                        label="reconstruct_result", interactive=False
+                    )
 
             save_btn = gr.Button("Save Data", variant="primary")
 
-
         video_input.change(
+            fn=sign_video_change,
+            outputs=[
+                vid,
+                fps,
+                gallery,
+                num_frames,
+                gloss,
+                frame_start,
+                frame_end,
+                selected,
+            ],
+        )
+
+        video_input.upload(
             fn=upload_sign_video_controller,
             inputs=video_input,
             outputs=[vid, fps, gallery, num_frames],
@@ -83,16 +98,10 @@ def build_setting_tab():
             outputs=selected,
         )
 
-        extract_keypoint_btn.click(
-            fn=extract_keypoint_controller,
-            inputs=[vid, gloss, fps, num_frames, frame_start, frame_end],
-            outputs=[],
-        )
-
-        reconstruct_3d_btn.click(
-            fn=reconstruct_3d_human_controller,
-            inputs=[vid, gloss, fps, num_frames, frame_start, frame_end],
-            outputs=[viz_video, reconstruct_result],
+        reconstruct_mesh_btn.click(
+            fn=reconstruct_mesh_human_controller,
+            inputs=[vid, fps],
+            outputs=[viz_video],
         )
 
         save_btn.click(
@@ -100,3 +109,83 @@ def build_setting_tab():
             inputs=[vid, gloss, fps, num_frames, frame_start, frame_end],
             outputs=[],
         )
+
+
+def sign_video_change():
+    return (
+        gr.update(value=""),
+        gr.update(value=None),
+        gr.update(value=[]),
+        gr.update(value=None),
+        gr.update(value=""),
+        gr.update(value=None),
+        gr.update(value=None),
+        gr.update(value=None),
+    )
+
+
+def upload_sign_video_controller(file_path):
+
+    result = DatasetService.upload_sign_video(upload_file=file_path)
+
+    if result.success:
+        return result.data
+
+    else:
+        gr.Warning(result.message)
+
+
+def reconstruct_mesh_human_controller(vid, fps):
+    if vid is None or fps is None:
+        gr.Warning(ERROR_MESSAGES[ErrorCode.INVALID_INPUT])
+        return
+
+    result = ReconstructService.reconstruct_mesh_human(video_id=vid, frame_rate=fps)
+
+    if result.success:
+        return result.data
+
+    else:
+        gr.Warning(result.message)
+
+
+def save_data_controller(
+    vid,
+    gloss,
+    fps,
+    num_frames,
+    frame_start,
+    frame_end,
+):
+
+    required_fields = {
+        "vid": vid,
+        "gloss": gloss,
+        "fps": fps,
+        "num_frames": num_frames,
+        "frame_start": frame_start,
+        "frame_end": frame_end,
+    }
+
+    missing_fields = [key for key, value in required_fields.items() if value is None]
+
+    if missing_fields:
+
+        gr.Warning(f"Missing fields: " f"{', '.join(missing_fields)}")
+
+        return
+
+    result = DatasetService.save_to_dataset(
+        video_id=vid,
+        gloss=gloss,
+        fps=fps,
+        num_frames=num_frames,
+        frame_start=frame_start,
+        frame_end=frame_end,
+    )
+
+    if result.success:
+        gr.Info(result.message)
+
+    else:
+        gr.Warning(f"⚠️ {result.message}")

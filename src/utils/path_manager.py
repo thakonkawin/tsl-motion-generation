@@ -1,10 +1,11 @@
 from pathlib import Path
 import glob
 
+
 class PathManager:
     # ROOT
     ROOT_DIR = Path(__file__).resolve().parent.parent.parent
-   
+
     # DATASETS
     DATASET_DIR = ROOT_DIR / "datasets"
     METADATA_PATH = DATASET_DIR / "metadata.csv"
@@ -28,7 +29,7 @@ class PathManager:
     # OUTPUTS
     OUTPUT_DIR = ROOT_DIR / "outputs"
     OUTPUT_FRAME_DIR = OUTPUT_DIR / "frames"
-    OUTPUT_3D_DIR = OUTPUT_DIR / "3d"
+    OUTPUT_MESH_DIR = OUTPUT_DIR / "mesh"
     OUTPUT_KEYPOINT_DIR = OUTPUT_DIR / "keypoint"
 
     # MOTIONS
@@ -41,8 +42,7 @@ class PathManager:
     BLEND_FILE = BLEND_DIR / "tsl_4d_model.blend"
     BLEND_ADDON_DATA_DIR = BLEND_DIR / "smplx_blender_addon" / "data"
 
-   
-    # CREATE DIRECTORIES   
+    # CREATE DIRECTORIES
     @classmethod
     def ensure_dirs(cls):
 
@@ -57,23 +57,19 @@ class PathManager:
             cls.TMP_SMPLX_DIR,
             cls.OUTPUT_DIR,
             cls.OUTPUT_FRAME_DIR,
-            cls.OUTPUT_3D_DIR,
+            cls.OUTPUT_MESH_DIR,
             cls.OUTPUT_KEYPOINT_DIR,
             cls.MOTION_DIR,
-            # 
-
-
+            #
         ]
 
         for directory in dirs:
             directory.mkdir(parents=True, exist_ok=True)
 
-   
     # DYNAMIC PATHS
     @classmethod
     def get_upload_video_path(cls, vid):
         return cls.UPLOAD_VIDEO_DIR / f"{vid}.mp4"
-    
 
     @classmethod
     def get_upload_frame_dir(cls, vid):
@@ -82,15 +78,14 @@ class PathManager:
     @classmethod
     def get_upload_frame_path(cls, vid, idx):
         return cls.get_upload_frame_dir(vid) / f"{idx:04d}.jpg"
-    
+
     @classmethod
     def get_tmp_mesh_video_path(cls, vid):
         return cls.TMP_MESH_DIR / f"result_{vid}.mp4"
-    
+
     @classmethod
     def get_tmp_keypoint_dir(cls, vid):
         return cls.TMP_KEYPOINT_DIR / vid
-    
 
     @classmethod
     def get_tmp_smplx_dir(cls, vid):
@@ -99,42 +94,28 @@ class PathManager:
     @classmethod
     def get_tmp_smplx_pkl_paths(cls, vid):
         pattern = cls.get_tmp_smplx_dir(vid) / "*.pkl"
-        return sorted( glob.glob(str(pattern)))
-    
-    @classmethod
-    def get_tmp_keypoint_json_paths(cls, vid):
-        pattern = cls.get_tmp_keypoint_dir(vid) / "*.json"
-        return sorted( glob.glob(str(pattern)))
-
+        return sorted(glob.glob(str(pattern)))
 
     @classmethod
     def get_motion_dir(cls, vid):
         return cls.MOTION_DIR / vid
-    
+
     @classmethod
     def get_motion_path(cls, vid, idx):
         return cls.get_motion_dir(vid) / f"{idx:04d}.pkl"
-    
+
     @classmethod
     def get_output_frame_dir(cls, vid):
         return cls.OUTPUT_FRAME_DIR / vid
-    
+
     @classmethod
     def get_output_frame_path(cls, vid, idx):
         return cls.get_output_frame_dir(vid) / f"{idx:04d}.png"
-    
-    @classmethod
-    def get_3d_video_path(cls, sign_id):
-        return cls.OUTPUT_3D_DIR / f"{sign_id}.mp4"
 
     @classmethod
-    def get_3d_json_path(cls, sign_id):
-        return cls.OUTPUT_3D_DIR / f"{sign_id}.json"
+    def get_mesh_video_path(cls, sign_id):
+        return cls.OUTPUT_MESH_DIR / f"{sign_id}.mp4"
 
     @classmethod
     def get_keypoint_video_path(cls, sign_id):
         return cls.OUTPUT_KEYPOINT_DIR / f"{sign_id}.mp4"
-
-    @classmethod
-    def get_keypoint_json_path(cls, sign_id):
-        return cls.OUTPUT_KEYPOINT_DIR / f"{sign_id}.json"

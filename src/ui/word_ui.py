@@ -1,19 +1,12 @@
 import gradio as gr
-from src.controllers.word_controller import (
-    get_metadata,
-    refresh_data,
-    delete_data,
-    on_select_word,
-    compute_3d_controller,
-    download_3d_json,
-    compute_keypoint,
-    download_keypoint_json,
-)
+import pandas as pd
+from src.services.dataset_service import DatasetService
+from src.services.render_service import RenderService
+
 
 def build_word_tab():
 
-    df = get_metadata()    
-
+    df = get_metadata_controller()
 
     with gr.Tab("Words"):
 
@@ -21,12 +14,9 @@ def build_word_tab():
 
             with gr.Column(scale=1):
 
-                dict_total = gr.Label(
-                    value=str(len(df)),
-                    label="Dict Total"
-                )
+                dict_total = gr.Label(value=str(len(df)), label="Dict Total")
 
-                refresh_data_button = gr.Button(
+                refresh_data_btn = gr.Button(
                     "Refresh",
                     variant="primary",
                 )
@@ -36,21 +26,16 @@ def build_word_tab():
                     interactive=False,
                 )
 
-                selected_word = gr.Textbox(
-                    label="gloss",
-                    interactive=False
-                )
+                selected_word = gr.Textbox(label="gloss", interactive=False)
 
-
-                delete_data_button = gr.Button(
+                delete_data_btn = gr.Button(
                     "Delete",
                     variant="stop",
                 )
 
-
             with gr.Column(scale=2):
 
-                with gr.Tab("3D"):
+                with gr.Tab("Mesh"):
 
                     video_3d = gr.Video(
                         label="Human Mesh Video",
@@ -60,13 +45,9 @@ def build_word_tab():
 
                     with gr.Row():
 
-                        compute_3d_button = gr.Button(
-                            "Compute 3D",
+                        compute_mesh_btn = gr.Button(
+                            "Compute Mesh",
                             variant="primary",
-                        )
-
-                        download_3d_button = gr.Button(
-                            "Download vertices"
                         )
 
                 with gr.Tab("Keypoint"):
@@ -79,13 +60,9 @@ def build_word_tab():
 
                     with gr.Row():
 
-                        compute_keypoint_button = gr.Button(
+                        compute_keypoint_btn = gr.Button(
                             "Compute Keypoint",
                             variant="primary",
-                        )
-
-                        download_keypoint_button = gr.Button(
-                            "Download keypoints"
                         )
 
         table = gr.Dataframe(
@@ -100,7 +77,7 @@ def build_word_tab():
 
         fps = gr.State()
         num_frames = gr.State()
-        
+
         table.select(
             fn=on_select_word,
             inputs=table,
@@ -109,37 +86,85 @@ def build_word_tab():
                 selected_word,
                 fps,
                 num_frames,
-            ]
-        )
-
-        refresh_data_button.click(
-            fn=refresh_data,
-            outputs=[
-                dict_total,
-                table
             ],
         )
 
-        delete_data_button.click(fn=delete_data, inputs=selected_sign_id)
+        table.change(
+            fn=refresh_data_controller,
+            outputs=[dict_total, table],
+        )
 
-        compute_3d_button.click(
-            fn=compute_3d_controller,
+        refresh_data_btn.click(
+            fn=refresh_data_controller,
+            outputs=[dict_total, table],
+        )
+
+        delete_data_btn.click(fn=delete_data_controller, inputs=selected_sign_id)
+
+        compute_mesh_btn.click(
+            fn=compute_mesh_controller,
             inputs=[selected_sign_id, fps, num_frames],
             outputs=video_3d,
         )
 
-        download_3d_button.click(
-            fn=download_3d_json,
-            inputs=selected_sign_id,
-        )
 
-        compute_keypoint_button.click(
-            fn=compute_keypoint,
-            inputs=selected_sign_id,
-            outputs=video_keypoint,
-        )
+def on_select_word(table_df, evt: gr.SelectData):
 
-        download_keypoint_button.click(
-            fn=download_keypoint_json,
-            inputs=selected_sign_id,
-        )
+    if isinstance(table_df, pd.DataFrame):
+        df = table_df
+    else:
+        df = pd.DataFrame(table_df)
+
+    row_index = evt.index[0]
+
+    row = df.iloc[row_index]
+
+    return (
+        str(row["sign_id"]),
+        str(row["gloss"]),
+        row["fps"],
+        row["num_frames"],
+    )
+
+
+def get_metadata_controller():
+
+    result = DatasetService.load_metadata()
+    if result.success:
+        return result.data
+    gr.Warning(result.message)
+
+
+def refresh_data_controller():
+
+    result = DatasetService.load_metadata()
+    df = result.data
+    if result.success:
+        return (str(len(df)), df)
+
+    gr.Warning(result.message)
+
+
+def delete_data_controller(sign_id):
+    if not sign_id.strip():
+        gr.Warning("Error: Sign ID not found")
+        return
+
+    result = DatasetService.delete_metadata(sign_id=sign_id)
+    if not result.success:
+        gr.Warning(result.message)
+
+    gr.Info(result.message)
+
+
+def compute_mesh_controller(sign_id, fps, num_frames):
+
+    if sign_id is None or fps is None or num_frames is None:
+        gr.Warning("Please select a sign before computing")
+
+    result = RenderService.render_gloss(sign_id, fps, num_frames)
+    if not result.success:
+        gr.Warning(result.message)
+        print(result.message)
+
+    return result.data

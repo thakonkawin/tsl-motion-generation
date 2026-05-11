@@ -20,23 +20,19 @@ def main():
         print("[SCRIPT] Preparing motion paths...")
 
         motion_paths = [
-            PathManager.get_motion_path(sign_id, i)
-            for i in range(num_frames - 1)
+            PathManager.get_motion_path(sign_id, i) for i in range(num_frames - 1)
         ]
 
         print("[SCRIPT] Start rendering...")
 
-        render(
-            motion_id=sign_id,
-            motion_lst=motion_paths
-        )
+        render(motion_id=sign_id, motion_lst=motion_paths)
 
         print("[SCRIPT] Converting images to video...")
 
         images_to_video(
             PathManager.get_output_frame_dir(vid=sign_id),
             PathManager.get_3d_video_path(sign_id=sign_id),
-            fps=fps
+            fps=fps,
         )
 
         print("[SCRIPT] Done")
