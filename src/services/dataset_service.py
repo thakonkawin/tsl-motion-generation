@@ -64,7 +64,12 @@ class DatasetService:
 
             cap.release()
 
-            data = [vid, fps, frame_paths, len(frame_paths)]
+            gallery_items = [
+                (frame_path, str(idx))
+                for idx, frame_path in enumerate(frame_paths, start=1)
+            ]
+
+            data = [vid, fps, gallery_items, len(frame_paths)]
             return success_result(data=data)
 
         except Exception as e:
@@ -309,3 +314,38 @@ class DatasetService:
             return error_result(
                 ErrorCode.UNKNOWN_ERROR, message=f"delete_metadata: {e}"
             )
+
+    @staticmethod
+    def search_gloss_sequence(glosses):
+        path = PathManager.METADATA_PATH
+        if not path.exists():
+            return
+
+        df = pd.read_csv(path)
+
+        # หา gloss ที่ไม่เจอ
+        missing_glosses = [
+            gloss for gloss in glosses if gloss not in set(df["gloss"].astype(str))
+        ]
+
+        # ต้องเจอทุกคำ
+        if missing_glosses:
+            return error_result(
+                ErrorCode.METADATA_NOT_FOUND,
+                message=f"Gloss not found: {missing_glosses}",
+            )
+
+        # reorder ตาม input
+        ordered_rows = []
+
+        for gloss in glosses:
+            row = df[df["gloss"] == gloss]
+
+            if row.empty:
+                raise ValueError(f"Gloss not found: {gloss}")
+
+            ordered_rows.append(row.iloc[0])
+
+        result_df = pd.DataFrame(ordered_rows).reset_index(drop=True)
+
+        return success_result(data=result_df)

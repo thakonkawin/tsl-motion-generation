@@ -164,7 +164,6 @@ def compute_mesh_controller(sign_id, fps, num_frames):
 
     result = RenderService.render_gloss(sign_id, fps, num_frames)
     if not result.success:
-        gr.Warning(result.message)
-        print(result.message)
+        gr.Warning(result.error_code)
 
     return result.data

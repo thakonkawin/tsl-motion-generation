@@ -4,12 +4,31 @@ from src.services.dataset_service import DatasetService
 from src.services.reconstruct_service import ReconstructService
 
 
-def selected_frame(evt: gr.SelectData):
-    frame_index = evt.index + 1
-    return str(frame_index)
-
-
 def build_setting_tab():
+
+    # custom_css = """
+    # <style>
+    # /* overlay frame index */
+    # #frame_gallery .thumbnail-item {
+    #     position: relative;
+    # }
+
+    # #frame_gallery .thumbnail-item::before {
+    #     content: attr(data-testid);
+    #     position: absolute;
+    #     top: 4px;
+    #     left: 4px;
+    #     background: rgba(0,0,0,0.7);
+    #     color: white;
+    #     font-size: 12px;
+    #     font-weight: bold;
+    #     padding: 2px 6px;
+    #     border-radius: 999px;
+    #     z-index: 100;
+    # }
+    # </style>
+    # """
+
     with gr.Tab("Settings"):
         with gr.Column():
             with gr.Row():
@@ -27,10 +46,11 @@ def build_setting_tab():
                         columns=8,
                         height=400,
                         interactive=True,
+                        elem_id="frame_gallery",
                     )
 
                     with gr.Row():
-                        selected = gr.Textbox(label="selected_frame", interactive=True)
+                        # selected = gr.Textbox(label="selected_frame", interactive=True)
                         gloss = gr.Textbox(label="gloss", interactive=True)
                         frame_start = gr.Number(label="frame_start", interactive=True)
                         frame_end = gr.Number(label="frame_end", interactive=True)
@@ -82,7 +102,7 @@ def build_setting_tab():
                 gloss,
                 frame_start,
                 frame_end,
-                selected,
+                # selected,
             ],
         )
 
@@ -90,12 +110,6 @@ def build_setting_tab():
             fn=upload_sign_video_controller,
             inputs=video_input,
             outputs=[vid, fps, gallery, num_frames],
-        )
-
-        gallery.select(
-            fn=selected_frame,
-            inputs=None,
-            outputs=selected,
         )
 
         reconstruct_mesh_btn.click(
@@ -106,21 +120,21 @@ def build_setting_tab():
 
         save_btn.click(
             fn=save_data_controller,
-            inputs=[vid, gloss, fps, num_frames, frame_start, frame_end],
-            outputs=[],
+            inputs=[vid, gloss, fps, num_frames, frame_start, frame_end, viz_video],
+            # outputs=[],
         )
 
 
 def sign_video_change():
     return (
-        gr.update(value=""),
-        gr.update(value=None),
-        gr.update(value=[]),
-        gr.update(value=None),
-        gr.update(value=""),
         gr.update(value=None),
         gr.update(value=None),
         gr.update(value=None),
+        gr.update(value=None),
+        gr.update(value=None),
+        gr.update(value=None),
+        gr.update(value=None),
+        # gr.update(value=None),
     )
 
 
@@ -150,29 +164,18 @@ def reconstruct_mesh_human_controller(vid, fps):
 
 
 def save_data_controller(
-    vid,
-    gloss,
-    fps,
-    num_frames,
-    frame_start,
-    frame_end,
+    vid, gloss, fps, num_frames, frame_start, frame_end, viz_video
 ):
+    if vid == "":
+        gr.Warning(f"video is empty")
+        return
 
-    required_fields = {
-        "vid": vid,
-        "gloss": gloss,
-        "fps": fps,
-        "num_frames": num_frames,
-        "frame_start": frame_start,
-        "frame_end": frame_end,
-    }
+    if frame_start is None or frame_end is None:
+        gr.Warning(f"frame_start,frame_end is empty")
+        return
 
-    missing_fields = [key for key, value in required_fields.items() if value is None]
-
-    if missing_fields:
-
-        gr.Warning(f"Missing fields: " f"{', '.join(missing_fields)}")
-
+    if gloss == "":
+        gr.Warning(f"Gloss fields or mesh is empty")
         return
 
     result = DatasetService.save_to_dataset(

@@ -2,7 +2,6 @@ import sys
 import traceback
 from pathlib import Path
 
-# add project root to PYTHONPATH
 ROOT_DIR = Path(__file__).resolve().parent.parent
 sys.path.append(str(ROOT_DIR))
 
@@ -31,7 +30,7 @@ def main():
 
         images_to_video(
             PathManager.get_output_frame_dir(vid=sign_id),
-            PathManager.get_3d_video_path(sign_id=sign_id),
+            PathManager.get_mesh_video_path(sign_id=sign_id),
             fps=fps,
         )
 
