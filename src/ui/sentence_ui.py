@@ -1,6 +1,7 @@
 import gradio as gr
 from src.services.dataset_service import DatasetService
 from src.services.motion_service import MotionService
+from src.services.render_service import RenderService
 
 
 def build_sentence_tab():
@@ -27,8 +28,7 @@ def build_sentence_tab():
                 )
 
         generate_btn.click(
-            fn=generate_tsl_controller,
-            inputs=[gloss],
+            fn=generate_tsl_controller, inputs=[gloss], outputs=[viz_video]
         )
 
 
@@ -41,8 +41,8 @@ def generate_tsl_controller(text_input):
     if not result_query.success:
         gr.Warning(result_query.message)
 
-    result = MotionService.create_sentence_motion(df=result_query.data)
+    result = RenderService.render_sentence(df=result_query.data)
     if not result.success:
         gr.Warning(result.message)
 
-    print(f"data: {result.data}")
+    return result.data
