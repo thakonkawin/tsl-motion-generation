@@ -1,3 +1,4 @@
+import time
 import gradio as gr
 from src.services.dataset_service import DatasetService
 from src.services.motion_service import MotionService
@@ -18,31 +19,49 @@ def build_sentence_tab():
                 generate_btn = gr.Button("Generate", variant="primary")
 
             with gr.Column(scale=2):
-
+                text_labal = gr.Textbox(label="Sentence", interactive=False)
                 viz_video = gr.Video(
                     label="TSL Video",
-                    height=650,
+                    height=600,
                     elem_id="viz_container",
                     interactive=False,
                     autoplay=False,
                 )
 
+                # histoy list video generated
+                gr.Examples(
+                    examples=[
+                        ["example/angry_tsl.mp4"],
+                        ["example/angry_tsl.mp4"],
+                        ["example/angry_tsl.mp4"],
+                    ],
+                    inputs=[viz_video],
+                    outputs=[viz_video],
+                    fn=None,
+                    cache_examples=False,
+                    label="Recents",
+                    examples_per_page=3,  #
+                )
+
         generate_btn.click(
-            fn=generate_tsl_controller, inputs=[gloss], outputs=[viz_video]
+            fn=generate_tsl_controller, inputs=[gloss], outputs=[viz_video, text_labal]
         )
 
 
 def generate_tsl_controller(text_input):
+    start = time.time()
     cleaned_text = text_input.strip()
 
     glosses = cleaned_text.split()
 
     result_query = DatasetService.search_gloss_sequence(glosses=glosses)
     if not result_query.success:
-        gr.Warning(result_query.message)
+        raise gr.Error(result_query.message)
 
     result = RenderService.render_sentence(df=result_query.data)
     if not result.success:
-        gr.Warning(result.message)
+        raise gr.Error(result.message)
 
-    return result.data
+    elapsed = time.time() - start
+    print(f"Time Redering: {elapsed / 60:.2f} นาที")
+    return result.data, cleaned_text

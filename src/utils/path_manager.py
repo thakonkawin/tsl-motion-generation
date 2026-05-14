@@ -30,7 +30,8 @@ class PathManager:
     OUTPUT_DIR = ROOT_DIR / "outputs"
     OUTPUT_FRAME_DIR = OUTPUT_DIR / "frames"
     OUTPUT_MESH_DIR = OUTPUT_DIR / "mesh"
-    OUTPUT_KEYPOINT_DIR = OUTPUT_DIR / "keypoint"
+    OUTPUT_KEYPOINT_DIR = OUTPUT_DIR / "keypoints"
+    OUTPUT_VIDEO_DIR = OUTPUT_DIR / "videos"
 
     # MOTIONS
     MOTION_DIR = ROOT_DIR / "motions"
@@ -59,6 +60,7 @@ class PathManager:
             cls.OUTPUT_FRAME_DIR,
             cls.OUTPUT_MESH_DIR,
             cls.OUTPUT_KEYPOINT_DIR,
+            cls.OUTPUT_VIDEO_DIR,
             cls.MOTION_DIR,
             #
         ]
@@ -115,6 +117,10 @@ class PathManager:
     @classmethod
     def get_mesh_video_path(cls, sign_id):
         return cls.OUTPUT_MESH_DIR / f"{sign_id}.mp4"
+
+    @classmethod
+    def get_output_video_path(cls, motion_id):
+        return cls.OUTPUT_VIDEO_DIR / f"{motion_id}.mp4"
 
     @classmethod
     def get_keypoint_video_path(cls, sign_id):

@@ -26,6 +26,9 @@ class RenderService:
 
             print("[INFO] Running render subprocess...")
 
+            input_path = (PathManager.get_output_frame_dir(vid=sign_id),)
+            output_path = (PathManager.get_mesh_video_path(sign_id=sign_id),)
+
             cmd = [
                 sys.executable,
                 "-m",
@@ -33,6 +36,8 @@ class RenderService:
                 sign_id,
                 str(fps),
                 str(num_frames),
+                input_path,
+                output_path,
             ]
 
             subprocess.run(cmd, capture_output=True, text=True)
@@ -58,6 +63,8 @@ class RenderService:
             motion_id = motion_result.data[0]
             fps = motion_result.data[1]
             num_frames = motion_result.data[2]
+            input_path = (PathManager.get_output_frame_dir(vid=motion_id),)
+            output_path = (PathManager.get_output_video_path(sign_id=motion_id),)
 
             cmd = [
                 sys.executable,
@@ -66,13 +73,17 @@ class RenderService:
                 motion_id,
                 str(fps),
                 str(num_frames),
+                input_path,
+                output_path,
             ]
 
             subprocess.run(cmd, capture_output=True, text=True)
 
             print("[INFO] Render done")
 
-            return success_result(data=str(PathManager.get_mesh_video_path(motion_id)))
+            return success_result(
+                data=str(PathManager.get_output_video_path(motion_id))
+            )
 
         except Exception as e:
             return error_result(

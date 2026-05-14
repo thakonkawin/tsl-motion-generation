@@ -15,6 +15,8 @@ def main():
         sign_id = sys.argv[1]
         fps = int(sys.argv[2])
         num_frames = int(sys.argv[3])
+        input_path = sys.argv[4]
+        output_path = sys.argv[5]
 
         print("[SCRIPT] Preparing motion paths...")
 
@@ -29,8 +31,8 @@ def main():
         print("[SCRIPT] Converting images to video...")
 
         images_to_video(
-            PathManager.get_output_frame_dir(vid=sign_id),
-            PathManager.get_mesh_video_path(sign_id=sign_id),
+            input_path,
+            output_path,
             fps=fps,
         )
 
