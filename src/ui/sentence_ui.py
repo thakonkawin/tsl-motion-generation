@@ -29,19 +29,19 @@ def build_sentence_tab():
                 )
 
                 # histoy list video generated
-                gr.Examples(
-                    examples=[
-                        ["example/angry_tsl.mp4"],
-                        ["example/angry_tsl.mp4"],
-                        ["example/angry_tsl.mp4"],
-                    ],
-                    inputs=[viz_video],
-                    outputs=[viz_video],
-                    fn=None,
-                    cache_examples=False,
-                    label="Recents",
-                    examples_per_page=3,  #
-                )
+                # gr.Examples(
+                #     examples=[
+                #         ["example/angry_tsl.mp4"],
+                #         ["example/angry_tsl.mp4"],
+                #         ["example/angry_tsl.mp4"],
+                #     ],
+                #     inputs=[viz_video],
+                #     outputs=[viz_video],
+                #     fn=None,
+                #     cache_examples=False,
+                #     label="Recents",
+                #     examples_per_page=3,  #
+                # )
 
         generate_btn.click(
             fn=generate_tsl_controller, inputs=[gloss], outputs=[viz_video, text_labal]

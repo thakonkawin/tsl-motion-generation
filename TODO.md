@@ -6,3 +6,4 @@
 - keypoint extracttion with sepains and manual remark point
 # Bonus
 - Render option
+- Render 3d motion tab

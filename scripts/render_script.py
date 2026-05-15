@@ -15,7 +15,7 @@ def main():
         sign_id = sys.argv[1]
         fps = int(sys.argv[2])
         num_frames = int(sys.argv[3])
-        input_path = sys.argv[4]
+        input_dir = sys.argv[4]
         output_path = sys.argv[5]
 
         print("[SCRIPT] Preparing motion paths...")
@@ -31,7 +31,7 @@ def main():
         print("[SCRIPT] Converting images to video...")
 
         images_to_video(
-            input_path,
+            input_dir,
             output_path,
             fps=fps,
         )
