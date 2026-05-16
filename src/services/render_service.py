@@ -1,18 +1,18 @@
-import sys
 import subprocess
+import sys
+
 import pandas as pd
-from src.utils.files import load_pkl
-from src.utils.path_manager import PathManager
-from src.utils.result import Result, error_result, success_result
+
 from src.const.errors import ErrorCode
 from src.services.motion_service import MotionService
 from src.utils.path_manager import PathManager
+from src.utils.result import error_result, success_result
 
 PathManager.ensure_dirs()
 
 
 class RenderService:
-
+    @staticmethod
     def render_gloss(sign_id, fps, num_frames):
         try:
             print("[INFO] Creating gloss motion...")
@@ -49,6 +49,7 @@ class RenderService:
         except Exception as e:
             return error_result(ErrorCode.UNKNOWN_ERROR, message=f"render_gloss: {e}")
 
+    @staticmethod
     def render_sentence(df: pd.DataFrame):
         try:
             print("[INFO] Creating gloss motion...")
@@ -56,14 +57,19 @@ class RenderService:
             motion_result = MotionService.create_sentence_motion(df=df)
 
             if not motion_result.success:
-                return error_result(motion_result.error_code, motion_result.message)
+                return error_result(
+                    motion_result.error_code,
+                    motion_result.message,
+                )
 
             print("[INFO] Running render subprocess...")
 
             motion_id = motion_result.data[0]
             fps = motion_result.data[1]
             num_frames = motion_result.data[2]
+
             input_dir = str(PathManager.get_output_frame_dir(vid=motion_id))
+
             output_path = str(PathManager.get_output_video_path(motion_id=motion_id))
 
             cmd = [
@@ -87,5 +93,6 @@ class RenderService:
 
         except Exception as e:
             return error_result(
-                ErrorCode.UNKNOWN_ERROR, message=f"render_sentence: {e}"
+                ErrorCode.UNKNOWN_ERROR,
+                message=f"render_sentence: {e}",
             )

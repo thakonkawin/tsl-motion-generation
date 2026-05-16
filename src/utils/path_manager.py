@@ -1,5 +1,5 @@
-from pathlib import Path
 import glob
+from pathlib import Path
 
 
 class PathManager:
@@ -32,6 +32,7 @@ class PathManager:
     OUTPUT_MESH_DIR = OUTPUT_DIR / "mesh"
     OUTPUT_KEYPOINT_DIR = OUTPUT_DIR / "keypoints"
     OUTPUT_VIDEO_DIR = OUTPUT_DIR / "videos"
+    RECENT_JSON_PATH = OUTPUT_DIR / "recents.json"
 
     # MOTIONS
     MOTION_DIR = ROOT_DIR / "motions"

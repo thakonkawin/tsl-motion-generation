@@ -1,20 +1,23 @@
 # import pandas as
+import json
 import os
+import shutil
+import uuid
 
 import cv2
 import h5py
-import uuid
-import shutil
-import subprocess
+
+# import subprocess
+# import json
 import numpy as np
 import pandas as pd
+
+from src.const.errors import ErrorCode
 from src.utils.files import load_pkl
 from src.utils.path_manager import PathManager
 from src.utils.result import Result, error_result, success_result
-from src.const.errors import ErrorCode
 
-
-from src.utils.path_manager import PathManager
+# from src.utils.path_manager import PathManager
 from src.utils.transaction_manager import TransactionManager
 
 PathManager.ensure_dirs()
@@ -31,55 +34,54 @@ DF_HEADERS = [
 
 
 class DatasetService:
+    # @staticmethod
+    # def upload_sign_video(upload_file) -> Result:
+    #     try:
+    #         vid = str(uuid.uuid4())
 
-    @staticmethod
-    def upload_sign_video(upload_file) -> Result:
-        try:
-            vid = str(uuid.uuid4())
+    #         # create path
+    #         frame_paths = []
+    #         video_path = PathManager.get_upload_video_path(vid)
+    #         frame_folder = PathManager.get_upload_frame_dir(vid)
+    #         frame_folder.mkdir(parents=True, exist_ok=True)
 
-            # create path
-            frame_paths = []
-            video_path = PathManager.get_upload_video_path(vid)
-            frame_folder = PathManager.get_upload_frame_dir(vid)
-            frame_folder.mkdir(parents=True, exist_ok=True)
+    #         # save upload video
+    #         shutil.copy(upload_file, video_path)
 
-            # save upload video
-            shutil.copy(upload_file, video_path)
+    #         # extract upload frames
+    #         cap = cv2.VideoCapture(video_path)
 
-            # extract upload frames
-            cap = cv2.VideoCapture(video_path)
+    #         # get upload frames
+    #         fps = cap.get(cv2.CAP_PROP_FPS)
 
-            # get upload frames
-            fps = cap.get(cv2.CAP_PROP_FPS)
+    #         idx = 1
+    #         while True:
+    #             ret, frame = cap.read()
+    #             if not ret:
+    #                 break
+    #             frame_path = PathManager.get_upload_frame_path(vid, idx)
+    #             cv2.imwrite(frame_path, frame)
+    #             frame_paths.append(frame_path)
+    #             idx += 1
 
-            idx = 1
-            while True:
-                ret, frame = cap.read()
-                if not ret:
-                    break
-                frame_path = PathManager.get_upload_frame_path(vid, idx)
-                cv2.imwrite(frame_path, frame)
-                frame_paths.append(frame_path)
-                idx += 1
+    #         cap.release()
 
-            cap.release()
+    #         gallery_items = [
+    #             (frame_path, str(idx))
+    #             for idx, frame_path in enumerate(frame_paths, start=1)
+    #         ]
 
-            gallery_items = [
-                (frame_path, str(idx))
-                for idx, frame_path in enumerate(frame_paths, start=1)
-            ]
+    #         data = [vid, fps, gallery_items, len(frame_paths)]
+    #         return success_result(data=data)
 
-            data = [vid, fps, gallery_items, len(frame_paths)]
-            return success_result(data=data)
+    #     except Exception as e:
+    #         return error_result(
+    #             ErrorCode.INVALID_INPUT, message=f"upload_sign_video: {e}"
+    # )
 
-        except Exception as e:
-            return error_result(
-                ErrorCode.INVALID_INPUT, message=f"upload_sign_video: {e}"
-            )
-
-    @staticmethod
-    def _save_keypoints(paths, video_id):
-        pass
+    # @staticmethod
+    # def _save_keypoints(paths, video_id):
+    #     pass
 
     @staticmethod
     def _save_vertices(paths, video_id):
@@ -126,7 +128,6 @@ class DatasetService:
             # Save to HDF5
             h5_path = PathManager.TSL_H5_PATH
             with h5py.File(h5_path, "a") as h5f:
-
                 # overwrite old vid
                 if video_id in h5f:
                     del h5f[video_id]
@@ -249,9 +250,11 @@ class DatasetService:
 
             tx.add_rollback(DatasetService._rollback_vertices, video_id)
 
+            csv_path = str(PathManager.METADATA_PATH)
+
             # Save CSV
             csv_result = DatasetService._save_csv(
-                path=PathManager.METADATA_PATH,
+                path=csv_path,
                 video_id=video_id,
                 gloss=gloss,
                 fps=fps,
@@ -304,7 +307,6 @@ class DatasetService:
             # Delete from tsl_dictionary.h5
             if PathManager.TSL_H5_PATH.exists():
                 with h5py.File(PathManager.TSL_H5_PATH, "a") as h5f:
-
                     if sign_id in h5f:
                         del h5f[sign_id]
 
@@ -319,7 +321,10 @@ class DatasetService:
     def search_gloss_sequence(glosses):
         path = PathManager.METADATA_PATH
         if not path.exists():
-            return
+            return error_result(
+                ErrorCode.INVALID_INPUT,
+                message=f"Dateset not found: {path}",
+            )
 
         df = pd.read_csv(path)
 
@@ -349,3 +354,13 @@ class DatasetService:
         result_df = pd.DataFrame(ordered_rows).reset_index(drop=True)
 
         return success_result(data=result_df)
+
+    @staticmethod
+    def load_json():
+        if not PathManager.RECENT_JSON_PATH.exists():
+            return error_result(error_code=ErrorCode.INVALID_INPUT)
+
+        with open(PathManager.RECENT_JSON_PATH, "r", encoding="utf-8") as f:
+            data = json.load(f)
+
+        return success_result(data=data)

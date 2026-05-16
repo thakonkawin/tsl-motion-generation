@@ -1,5 +1,7 @@
 import gradio as gr
+
 from src.const.errors import ERROR_MESSAGES, ErrorCode
+from src.core.gloss_setup import GlossSetup
 from src.services.dataset_service import DatasetService
 from src.services.reconstruct_service import ReconstructService
 
@@ -58,7 +60,6 @@ def build_setting_tab():
             extract_keypoint_btn = gr.Button("Extract Keypoints", variant="primary")
 
             with gr.Row():
-
                 with gr.Column(scale=1):
                     viz_video = gr.Video(
                         label="Skeleton Video",
@@ -75,7 +76,6 @@ def build_setting_tab():
 
             reconstruct_mesh_btn = gr.Button("Reconstructe Mesh", variant="primary")
             with gr.Row():
-
                 with gr.Column(scale=1):
                     viz_video = gr.Video(
                         label="Reconstructed Human Mesh Video",
@@ -139,14 +139,16 @@ def sign_video_change():
 
 
 def upload_sign_video_controller(file_path):
+    try:
+        vid, fps, gallery, num_frames = GlossSetup.upload_sign_video(
+            upload_file=file_path,
+            video_ext="mp4",
+        )
+        return vid, fps, gallery, num_frames
 
-    result = DatasetService.upload_sign_video(upload_file=file_path)
-
-    if result.success:
-        return result.data
-
-    else:
-        gr.Warning(result.message)
+    except ValueError as e:
+        gr.Warning(str(e))
+        return "", 0, [], 0
 
 
 def reconstruct_mesh_human_controller(vid, fps):

@@ -48,15 +48,12 @@ examples = [[item["video_path"]] for item in recents]
 # UI
 # --------------------------------
 with gr.Blocks() as demo:
-
     gr.Markdown("## Video Gallery")
 
     with gr.Row():
-
         # ---------------- LEFT ----------------
         with gr.Column(scale=1):
-
-            video_input = gr.Video(label="Examples", interactive=False, height=420)
+            video_input = gr.Video(label="Recents", interactive=False, height=420)
 
             gr.Examples(
                 examples=examples,
@@ -70,7 +67,6 @@ with gr.Blocks() as demo:
 
         # ---------------- RIGHT ----------------
         with gr.Column(scale=2):
-
             preview_video = gr.Video(label="Preview", height=480)
 
             sentence_output = gr.Textbox(label="Sentence")
