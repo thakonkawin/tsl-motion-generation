@@ -1,12 +1,16 @@
-from abc import ABC, abstractmethod
 from typing import Any
 
+from core.processors.interfaces.human_model_interface import HumanModelInterface
+from core.utils.logger import get_logger
 
-class HumanModelInterface(ABC):
-    @abstractmethod
+
+class SMPLestXProcessor(HumanModelInterface):
+    def __init__(self, checkpoint_path: str) -> None:
+        self._checkpoint_path = checkpoint_path
+        self._logger = get_logger(__name__)
+
     def load_model(self) -> None:
-        pass
+        raise NotImplementedError
 
-    @abstractmethod
     def generate_mesh(self, motion_data: Any) -> Any:
-        pass
+        raise NotImplementedError

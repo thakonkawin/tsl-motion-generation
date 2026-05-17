@@ -6,6 +6,12 @@ from pathlib import Path
 class AppConfig:
     ROOT_DIR: Path = Path(__file__).resolve().parent.parent.parent
 
+    # Dataset
+    METADATA_PATH: str = "assets/datasets/metadata.csv"
+    DATASET_PATH: str = "assets/datasets/tsl_dictionary.h5"
+
+    MOTION_SENTENCE_DIR: str = "tmp/motions/sentences"
+
     TEMP_DIR: str = "tmp"
 
     UPLOADS_DIR: str = "uploads"
@@ -24,3 +30,9 @@ class AppConfig:
         ".avi",
         ".mkv",
     )
+
+    MOTION_MODEL_PATH: str = ""
+    HUMAN_MODEL_PATH: str = ""
+    KEYPOINT_MODEL_PATH: str = ""
+
+    CSS_PATH = ROOT_DIR / "core/ui/components/styles.css"

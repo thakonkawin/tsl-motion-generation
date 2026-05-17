@@ -8,6 +8,11 @@ class PathManager:
     def root_dir(cls) -> Path:
         return AppConfig.ROOT_DIR
 
+    # ====================== Dataset ======================
+    @classmethod
+    def metadata_path(cls) -> Path:
+        return AppConfig.ROOT_DIR / AppConfig.METADATA_PATH
+
     @classmethod
     def temp_dir(cls) -> Path:
         return cls.root_dir() / AppConfig.TEMP_DIR

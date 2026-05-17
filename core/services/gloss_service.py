@@ -1,8 +1,7 @@
-from utils.logger import get_logger
-
 from core.processors.interfaces.human_model_interface import HumanModelInterface
 from core.processors.interfaces.motion_interface import MotionInterface
-from core.processors.render.mesh_renderer import MeshRenderer
+from core.services.render.mesh_renderer import MeshRenderer
+from core.utils.logger import Logger
 
 
 class GlossService:
@@ -15,7 +14,7 @@ class GlossService:
         self._motion_processor = motion_processor
         self._human_model_processor = human_model_processor
         self._mesh_renderer = mesh_renderer
-        self._logger = get_logger(__name__)
+        self._logger = Logger()
 
     def generate_gloss_animation(self, gloss_sequence: list[str]) -> str:
         raise NotImplementedError

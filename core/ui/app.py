@@ -1,19 +1,21 @@
-from controllers.gloss_controller import GlossController
-from controllers.sentence_controller import SentenceController
-from controllers.setting_controller import SettingController
-from processors.human_model.smplestx_processor import SMPLestXProcessor
-from processors.keypoint.sapiens_processor import SapiensProcessor
-from processors.motion.motion_generation_processor import MotionGenerationProcessor
-from processors.render.mesh_renderer import MeshRenderer
-from processors.render.skeleton_renderer import SkeletonRenderer
-from services.gloss_service import GlossService
-from services.sentence_service import SentenceService
-from services.setting_service import SettingService
-from ui.components.gloss_tab import GlossTab
-from ui.components.sentence_tab import SentenceTab
-from ui.components.setting_tab import SettingTab
+import gradio as gr
+from gradio.themes import Soft
 
-from utils.config import AppConfig
+from core.controllers.gloss_controller import GlossController
+from core.controllers.sentence_controller import SentenceController
+from core.controllers.setting_controller import SettingController
+from core.processors.human_model.smplestx_processor import SMPLestXProcessor
+from core.processors.keypoint.sapiens_processor import SapiensProcessor
+from core.processors.motion.motion_processor import MotionProcessor
+from core.services.gloss_service import GlossService
+from core.services.render.mesh_renderer import MeshRenderer
+from core.services.render.skeleton_renderer import SkeletonRenderer
+from core.services.sentence_service import SentenceService
+from core.services.setting_service import SettingService
+from core.ui.components.gloss_tab import GlossTab
+from core.ui.components.sentence_tab import SentenceTab
+from core.ui.components.setting_tab import SettingTab
+from core.utils.config import AppConfig
 
 
 class Application:
@@ -22,15 +24,15 @@ class Application:
 
         # Processors
         self.motion_processor = MotionGenerationProcessor(
-            model_path=self.config.motion_model_path,
+            model_path=self.config.MOTION_MODEL_PATH,
         )
 
         self.human_model_processor = SMPLestXProcessor(
-            model_path=self.config.human_model_path,
+            checkpoint_path=self.config.HUMAN_MODEL_PATH,
         )
 
         self.keypoint_processor = SapiensProcessor(
-            checkpoint_path=self.config.keypoint_model_path,
+            checkpoint_path=self.config.KEYPOINT_MODEL_PATH,
         )
 
         # Renderers
@@ -81,9 +83,22 @@ class Application:
         )
 
     def run(self) -> None:
-        raise NotImplementedError
 
+        with gr.Blocks() as demo:
+            gr.Markdown("<div id='title'>Thai Sign Language Animation Generation</div>")
 
-if __name__ == "__main__":
-    app = Application()
-    app.run()
+            with gr.Tabs():
+                self.sentence_tab.build_sentence_tab()
+                # build_word_tab()
+                # build_setting_tab()
+
+        # raise NotImplementedError
+        #
+        demo.launch(
+            theme=Soft(primary_hue="orange"),
+            css_paths=self.config.CSS_PATH,
+            allowed_paths=[
+                # str(PathManager.UPLOAD_DIR),
+                # str(PathManager.TMP_DIR),
+            ],
+        )

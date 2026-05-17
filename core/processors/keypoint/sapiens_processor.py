@@ -1,13 +1,13 @@
 from typing import Any
 
 from core.processors.interfaces.keypoint_interface import KeypointInterface
-from core.utils.logger import get_logger
+from core.utils.logger import Logger
 
 
 class SapiensProcessor(KeypointInterface):
     def __init__(self, checkpoint_path: str) -> None:
         self._checkpoint_path = checkpoint_path
-        self._logger = get_logger(__name__)
+        self._logger = Logger()
 
     def load_model(self) -> None:
         raise NotImplementedError

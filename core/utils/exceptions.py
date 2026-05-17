@@ -8,3 +8,11 @@ class InvalidVideoExtensionError(Exception):
 
 class FileOperationError(Exception):
     pass
+
+
+class InvalidPathError(Exception):
+    pass
+
+
+class InvalidValueError(Exception):
+    pass
