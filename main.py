@@ -1,9 +1,8 @@
-from core.ui.app import Application
-from core.utils.path_manager import PathManager
+from src.gradio_app import Application
 
 
 def main():
-    PathManager.ensure_dirs()
+    # PathManager.ensure_dirs()
 
     app = Application()
     app.run()
