@@ -1,1 +1,0 @@
-from .MANO import MANO

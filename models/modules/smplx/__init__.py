@@ -1,2 +1,0 @@
-
-from .SMPLX import SMPLX 

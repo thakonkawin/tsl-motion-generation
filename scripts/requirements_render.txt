@@ -1,0 +1,5 @@
+bpy==5.0.1
+gradio
+pydantic_settings
+fake-bpy-module-latest
+h5py

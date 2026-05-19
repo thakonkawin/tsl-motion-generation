@@ -1,1 +1,0 @@
-from .FLAME import FLAME, vertices2landmarks
