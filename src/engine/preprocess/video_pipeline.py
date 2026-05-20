@@ -57,8 +57,8 @@ class VideoPipeline:
                 )
                 raise ValueError(msg)
 
-            success = cv2.imwrite(str(frame_path), frame)
-            if not success:
+            ok = cv2.imwrite(str(frame_path), frame)
+            if not ok:
                 msg = f"could not save frame: {frame_path}"
                 self._logger.error(
                     message=msg, module="VideoPipeline.upload_sign_video"

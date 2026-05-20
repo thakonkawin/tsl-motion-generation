@@ -12,7 +12,7 @@ class Blender:
         self._logger = Logger()
         self._cfg = AppConfig()
 
-    def _install_addon(self) -> None:
+    def install_addon(self) -> None:
         addon_name = self._cfg.BLEND_ADDON_NAME
 
         if addon_name in bpy.context.preferences.addons:
@@ -29,13 +29,13 @@ class Blender:
         bpy.ops.preferences.addon_enable(module=addon_name)
         bpy.ops.wm.save_userpref()
 
-    def _get_first_object(self, obj_type: str):
+    def get_first_object(self, obj_type: str) -> Any:
         for obj in bpy.context.scene.objects:
             if obj.type == obj_type:
                 return obj
         return None
 
-    def _set_active(self, obj: Any) -> None:
+    def set_active(self, obj: Any) -> None:
         if obj is None:
             msg = "Object is None"
             self._logger.error(message=msg, module="Blender._install_addon")
@@ -46,7 +46,7 @@ class Blender:
         bpy.context.view_layer.objects.active = obj
         bpy.context.view_layer.update()
 
-    def _set_addon(self) -> None:
+    def set_addon(self) -> None:
 
         self._logger.info(message="[Render] Opening blend file...")
         bpy.ops.wm.open_mainfile(
@@ -60,7 +60,7 @@ class Blender:
                 directory=os.path.abspath(str(addon_data_dir))
             )
 
-    def _configure_render_quality(self, scene, resolution: tuple) -> None:
+    def configure_render_quality(self, scene, resolution: tuple) -> None:
         # Engine
         scene.render.engine = "CYCLES"
         # GPU Auto-Detection
@@ -161,41 +161,11 @@ class Blender:
         )
         self._logger.info(message=mgs)
 
-    def render(self, motion_id: str, motion_lst: list, resolution: tuple = (512, 512)):
+    def get_scene(self) -> Any:
+        return bpy.context.scene
 
-        self._install_addon()
-        self._set_addon()
+    def smplx_load_pose(self, motion_path: str) -> None:
+        bpy.ops.object.smplx_load_pose(filepath=motion_path)  # pyright: ignore[reportAttributeAccessIssue]
 
-        scene = bpy.context.scene
-        self._configure_render_quality(scene=scene, resolution=resolution)
-
-        # Armature
-        armature = self._get_first_object(obj_type="ARMATURE")
-        if armature is None:
-            msg = "No ARMATURE found in scene — SMPL-X setup required."
-            self._logger.error(message=msg, module="Blender.render")
-            raise RuntimeError(msg)
-
-        self._set_active(obj=armature)
-
-        # Render Loop
-        total_frames = len(motion_lst)
-
-        for idx, motion_path in enumerate(motion_lst):
-            self._logger.info(message=f"[Render] Loading pose {idx + 1}/{total_frames}")
-
-            bpy.ops.object.smplx_load_pose(filepath=str(motion_path))  # pyright: ignore[reportAttributeAccessIssue]
-
-            frame_path = self._cfg.get_index_file_path(
-                path=self._cfg.OUTPUT_FRAME_DIR, id=motion_id, index=idx
-            )
-
-            # filepath ต้องไม่มี extension
-            scene.render.filepath = str(frame_path.with_suffix(""))
-
-            bpy.ops.render.render(write_still=True)
-            self._logger.info(
-                message=f"[Render] Saved frame {idx + 1}/{total_frames} → {frame_path}"
-            )
-
-        self._logger.success("[Render] Completed")
+    def render(self) -> None:
+        bpy.ops.render.render(write_still=True)

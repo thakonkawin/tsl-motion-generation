@@ -10,31 +10,21 @@ class DatasetView:
     def __init__(self, controller: DatasetController) -> None:
         self._controller = controller
 
-    def render_dataset_tab(self):
+    def render_dataset_tab(self, tab_id="dataset"):
 
         df = cast(pd.DataFrame, self._controller.get_metadata_controller())
 
-        with gr.Tab("Dataset"):
+        with gr.Tab("Dataset", id=tab_id):
             with gr.Row():
                 with gr.Column(scale=1):
                     dict_total = gr.Label(value=str(len(df)), label="Dict Total")
 
-                    refresh_data_btn = gr.Button(
-                        "Refresh",
-                        variant="primary",
-                    )
+                    refresh_data_btn = gr.Button("Refresh", variant="primary")
 
-                    selected_sign_id = gr.Textbox(
-                        label="sign_id",
-                        interactive=False,
-                    )
-
+                    selected_sign_id = gr.Textbox(label="sign_id", interactive=False)
                     selected_word = gr.Textbox(label="gloss", interactive=False)
 
-                    delete_data_btn = gr.Button(
-                        "Delete",
-                        variant="stop",
-                    )
+                    delete_data_btn = gr.Button("Delete")
 
                 with gr.Column(scale=2):
                     with gr.Tab("Mesh"):
@@ -46,8 +36,7 @@ class DatasetView:
 
                         with gr.Row():
                             compute_mesh_btn = gr.Button(
-                                "Compute Mesh",
-                                variant="primary",
+                                "Compute Mesh", variant="primary"
                             )
 
                     with gr.Tab("Keypoint"):

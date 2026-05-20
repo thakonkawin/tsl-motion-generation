@@ -1,12 +1,7 @@
 from src.gradio_app import Application
 
-
-def main():
-    # PathManager.ensure_dirs()
-
-    app = Application()
-    app.run()
+app = Application()
+demo = app.build()
 
 
-if __name__ == "__main__":
-    main()
+app.run()

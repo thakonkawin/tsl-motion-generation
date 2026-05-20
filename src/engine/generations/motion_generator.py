@@ -1,93 +1,117 @@
+import uuid
+from typing import cast
+
+import h5py
+import numpy as np
+import pandas as pd
+
+from src.engine.preprocess.dataset_io import DatasetIO
+from src.utils.config import AppConfig
+from src.utils.logger import Logger
+
+
 class MotionGenerator:
     def __init__(self) -> None:
-        pass
-        # self._logger = Logger()
+        self._logger = Logger()
+        self._cfg = AppConfig()
+        self._dataset_io = DatasetIO()
 
-    # def search_gloss_sequence(self, glosses: list[str]) -> pd.DataFrame:
-    #     filepath = AppConfig.ROOT_DIR / AppConfig.METADATA_PATH
-    #     if not filepath.exists():
-    #         msg = f"Path: {filepath}"
-    #         self._logger.error(
-    #             message=msg, module="GlossProcessor.search_gloss_sequence"
-    #         )
-    #         raise InvalidPathError(msg)
+    def generate_gloss_motion(
+        self, motion_id: str, num_frames: int, gender: str
+    ) -> list:
+        try:
+            motion_data = self._dataset_io.load_motion_data(sign_id=motion_id)
 
-    #     df = pd.read_csv(filepath)
+            group = cast(h5py.Group, motion_data[motion_id])
+            vertices_group = cast(h5py.Group, group["vertices"])
 
-    #     # หา gloss ที่ไม่เจอ
-    #     missing_glosses = [
-    #         gloss for gloss in glosses if gloss not in set(df["gloss"].astype(str))
-    #     ]
+            motion_paths = []
+            for idx in range(num_frames):
+                smplx_params = {}
 
-    #     # ต้องเจอทุกคำ
-    #     if missing_glosses:
-    #         msg = f"Missing_glosses: {missing_glosses}"
-    #         self._logger.warn(
-    #             message=msg, module="GlossProcessor.search_gloss_sequence"
-    #         )
-    #         raise ValueError(msg)
+                for param_name in vertices_group.keys():
+                    data = cast(h5py.Dataset, vertices_group[param_name])
+                    param_data = np.asarray(data[idx])
+                    param_data = np.expand_dims(param_data, axis=0)
 
-    #     # reorder ตาม input
-    #     ordered_rows = []
+                    smplx_params[param_name] = param_data
+                    smplx_params["gender"] = gender
 
-    #     for gloss in glosses:
-    #         row = df[df["gloss"] == gloss]
+                    motion_path = self._cfg.get_index_file_path(
+                        path=self._cfg.TMP_MOTION_GLOSS_DIR,
+                        id=motion_id,
+                        index=idx,
+                        ext=".pkl",
+                        mkdir=True,
+                    )
 
-    #         if row.empty:
-    #             msg = f"Gloss not found: {gloss}"
-    #             self._logger.error(
-    #                 message=msg, module="GlossProcessor.search_gloss_sequence"
-    #             )
-    #             raise ValueError(msg)
+                    self._dataset_io.dump_pkl(motion_path, smplx_params)
+                    motion_paths.append(motion_path)
 
-    #         ordered_rows.append(row.iloc[0])
+            return motion_paths
 
-    #     result = pd.DataFrame(ordered_rows).reset_index(drop=True)
+        except Exception as e:
+            self._logger.error(
+                message=str(e), module="MotionGenerator.generate_gloss_motion"
+            )
+            raise RuntimeError(str(e))
 
-    #     return result
+    def _set_frame_transition(self, data: pd.DataFrame) -> pd.DataFrame:
+        if not data.empty:
+            data.loc[0, "frame_start"] = 1
+            data.loc[data.index[-1], "frame_end"] = data.iloc[-1]["num_frames"]
 
-    # def generate_sentence_motion(self, gloss_sequence: pd.DataFrame) -> None:
+            data["num_frames"] = (data["frame_end"] - data["frame_start"] + 1).astype(
+                int
+            )
 
-    #     motion_data = self._set_frame_transition(data=gloss_sequence)
+        return data
 
-    #     motion_id = str(uuid.uuid4())
+    def generate_sentence_motion(
+        self, gloss_sequence: pd.DataFrame, gender: str
+    ) -> list:
 
-    #     motion_folder = AppConfig.ROOT_DIR / AppConfig.MOTION_SENTENCE_DIR
-    #     motion_folder.mkdir(parents=True, exist_ok=True)
+        motions = self._set_frame_transition(data=gloss_sequence)
+        motion_id = str(uuid.uuid4())
 
-    #     frame_number = 0
+        motion_paths = []
+        frame_rate = 0
+        frame_number = 0
 
-    #     with h5py.File(AppConfig.ROOT_DIR / AppConfig.DATASET_PATH, "r") as f:
-    #         for _, row in motion_data.iterrows():
-    #             sign_id = str(row["sign_id"])
+        for _, row in motions.iterrows():
+            motion_data = self._dataset_io.load_motion_data(sign_id=motion_id)
 
-    #             group = cast(h5py.Group, f[sign_id])
+            sign_id = str(row["sign_id"])
+            group = cast(h5py.Group, motion_data[sign_id])
+            vertices_group = cast(h5py.Group, group["vertices"])
 
-    #             vertices_group = group["vertices"]
+            start_frame = cast(int, row["frame_start"])
+            end_frame = cast(int, row["frame_end"])
+            frame_rate = cast(int, row["fps"])
+            # loop ตามช่วง START-END
+            for frame_idx in range(start_frame, end_frame):
+                smplx_params = {}
 
-    #             start_frame = cast(int, row["frame_start"])
-    #             end_frame = cast(int, row["frame_end"])
-    #             frame_rate = cast(int, row["fps"])
-    #             # loop ตามช่วง START-END
-    #             for frame_idx in range(start_frame, end_frame):
-    #                 smplx_params = {}
+                for param_name in vertices_group.keys():
+                    data = cast(h5py.Dataset, vertices_group[param_name])
+                    param_data = np.asarray(data[frame_idx])
+                    param_data = np.expand_dims(param_data, axis=0)
 
-    #                 for param_name in vertices_group.keys():
-    #                     # ใช้ frame เดียวกันทุก param
-    #                     param_data = vertices_group[param_name][frame_idx]
+                    smplx_params[param_name] = param_data
 
-    #                     param_data = np.expand_dims(param_data, axis=0)
+                smplx_params["gender"] = gender
 
-    #                     smplx_params[param_name] = param_data
+                motion_path = self._cfg.get_index_file_path(
+                    path=self._cfg.TMP_MOTION_SENTENCE_DIR,
+                    id=motion_id,
+                    index=frame_number,
+                    ext=".pkl",
+                    mkdir=True,
+                )
 
-    #                 smplx_params["gender"] = "neutral"
+                self._dataset_io.dump_pkl(motion_path, smplx_params)
+                motion_paths.append(motion_path)
 
-    #                 motion_path = PathManager.get_motion_path(motion_id, frame_number)
+                frame_number += 1
 
-    #                 dump_pkl(motion_path, smplx_params)
-
-    #                 frame_number += 1
-
-    #     result = [motion_id, frame_rate, frame_number]
-
-    #     return result
+        return [motion_paths, frame_rate, frame_number]
