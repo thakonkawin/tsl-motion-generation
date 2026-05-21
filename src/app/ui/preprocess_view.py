@@ -7,7 +7,7 @@ class PreprocessView:
     def __init__(self, controller: PreprocessController) -> None:
         self._controller = controller
 
-    def render_preprocess_tab(self, tab_id="preprocess"):
+    def render_preprocess_tab(self):
 
         # custom_css = """
         # <style>
@@ -32,7 +32,7 @@ class PreprocessView:
         # </style>
         # """
 
-        with gr.Tab("Preprocessing", id=tab_id):
+        with gr.Tab("Preprocessing"):
             with gr.Column():
                 with gr.Row():
                     with gr.Column(scale=1):

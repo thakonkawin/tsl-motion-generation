@@ -43,6 +43,10 @@ class Application:
         demo.queue(max_size=3).launch(
             theme=gr.Theme.from_hub("Nymbo/Nymbo_Theme"),
             css_paths=self._cfg.get_path(path=self._cfg.CSS_PATH),
-            allowed_paths=["/home/thakon/workspaces/tsl-motion-generation/example"],
+            allowed_paths=[
+                str(self._cfg.get_path(path=self._cfg.EXAMPLE_DIR)),
+                str(self._cfg.get_path(path=self._cfg.OUTPUT_DIR)),
+                str(self._cfg.get_path(path=self._cfg.TMP_DIR)),
+            ],
             debug=True,
         )

@@ -11,6 +11,7 @@ class AppConfig(BaseSettings):
     METADATA_PATH: Path = Path("assets/datasets/metadata.csv")
     DATASET_PATH: Path = Path("assets/datasets/tsl_dictionary.h5")
     # Temp
+    TMP_DIR: Path = Path("tmp")
     TMP_MOTION_SENTENCE_DIR: Path = Path("tmp/motions/sentences")
     TMP_MOTION_GLOSS_DIR: Path = Path("tmp/motions/gloss")
     TMP_UPLOAD_VIDEO_DIR: Path = Path("tmp/upload/videos")
@@ -19,6 +20,7 @@ class AppConfig(BaseSettings):
     # Output
     OUTPUT_DIR: Path = Path("outputs")
     OUTPUT_FRAME_DIR: Path = Path("outputs/frames")
+    OUTPUT_JSON_PATH: Path = Path("outputs/recents/recent.json")
     # Blender
     BLEND_ADDON_NAME: str = "smplx_blender_addon"
     BLEND_ADDON_ZIP: Path = Path("blender/smplx_blender_addon_300_20220623.zip")
@@ -28,6 +30,8 @@ class AppConfig(BaseSettings):
     CSS_PATH: Path = Path("src/app/components/styles.css")
     # Models
     INFERENCE_SMPLESTX_SCRIPT: Path = Path("scripts/inference_smplestx.sh")
+    #
+    EXAMPLE_DIR: Path = Path("example")
 
     def get_path(self, path: Path) -> Path:
         path = Path(path)

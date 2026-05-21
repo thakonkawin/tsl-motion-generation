@@ -5,9 +5,9 @@ class DocumentView:
     def __init__(self) -> None:
         pass
 
-    def render_documents_tab(self, tab_id="documents"):
+    def render_documents_tab(self):
 
-        with gr.Tab("Documents", id=tab_id):
+        with gr.Tab("Documents"):
             gr.Markdown("## Documents")
             # btn_home = gr.Button("🏠 Home")
             # btn_users = gr.Button("👤 Users")

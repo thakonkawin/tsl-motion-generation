@@ -7,9 +7,9 @@ class Text2MotionView:
     def __init__(self, controller: Text2MotionController) -> None:
         self._controller = controller
 
-    def render_text2moition_tab(self, tab_id="text2motion"):
+    def render_text2moition_tab(self):
 
-        with gr.Tab("Text2Motion", id=tab_id):
+        with gr.Tab("Text2Motion"):
             with gr.Row():
                 with gr.Column(scale=1):
                     gloss = gr.Textbox(
@@ -32,67 +32,23 @@ class Text2MotionView:
                     )
 
                     # histoy list video generated
-                    gallery = gr.Gallery(
-                        value=[
-                            (
-                                "/home/thakon/workspaces/tsl-motion-generation/example/angry_tsl.mp4",
-                                "Gloss: โกรธ ",
-                            ),
-                            (
-                                "/home/thakon/workspaces/tsl-motion-generation/example/angry_tsl.mp4",
-                                "Gloss: กิน ข้าว | Sentence: ฉันกินข้าว",
-                            ),
-                            (
-                                "/home/thakon/workspaces/tsl-motion-generation/example/angry_tsl.mp4",
-                                "Gloss: โกรธ | Sentence: ฉันโกรธ",
-                            ),
-                            (
-                                "/home/thakon/workspaces/tsl-motion-generation/example/angry_tsl.mp4",
-                                "Gloss: กิน ข้าว | Sentence: ฉันกินข้าว",
-                            ),
-                            (
-                                "/home/thakon/workspaces/tsl-motion-generation/example/angry_tsl.mp4",
-                                "Gloss: โกรธ | Sentence: ฉันโกรธ",
-                            ),
-                            (
-                                "/home/thakon/workspaces/tsl-motion-generation/example/angry_tsl.mp4",
-                                "Gloss: กิน ข้าว | Sentence: ฉันกินข้าว",
-                            ),
-                            (
-                                "/home/thakon/workspaces/tsl-motion-generation/example/angry_tsl.mp4",
-                                "Gloss: โกรธ | Sentence: ฉันโกรธ",
-                            ),
-                            (
-                                "/home/thakon/workspaces/tsl-motion-generation/example/angry_tsl.mp4",
-                                "Gloss: กิน ข้าว | Sentence: ฉันกินข้าว",
-                            ),
-                            (
-                                "/home/thakon/workspaces/tsl-motion-generation/example/angry_tsl.mp4",
-                                "Gloss: โกรธ | Sentence: ฉันโกรธ",
-                            ),
-                            (
-                                "/home/thakon/workspaces/tsl-motion-generation/example/angry_tsl.mp4",
-                                "Gloss: กิน ข้าว | Sentence: ฉันกินข้าว",
-                            ),
-                            (
-                                "/home/thakon/workspaces/tsl-motion-generation/example/angry_tsl.mp4",
-                                "Gloss: โกรธ | Sentence: ฉันโกรธ",
-                            ),
-                            (
-                                "/home/thakon/workspaces/tsl-motion-generation/example/angry_tsl.mp4",
-                                "Gloss: กิน ข้าว | Sentence: ฉันกินข้าว",
-                            ),
-                        ],
-                        label="Recents",
-                        columns=6,
-                        rows=10,
-                        object_fit="contain",
-                        preview=False,
-                        elem_id="video_gallery",
-                    )
+            gallery = gr.Gallery(
+                value=self._controller.get_recent_controller(),
+                label="Recents",
+                columns=7,
+                object_fit="cover",
+                preview=False,
+                elem_id="video_gallery",
+            )
 
             generate_btn.click(
                 fn=self._controller.generate_tsl_controller,
                 inputs=[gloss],
-                outputs=[viz_video, text_labal],
+                outputs=[viz_video],
+            )
+
+            viz_video.change(
+                fn=self._controller.on_video_change_controller,
+                inputs=[viz_video, gloss],
+                outputs=[gallery, text_labal],
             )

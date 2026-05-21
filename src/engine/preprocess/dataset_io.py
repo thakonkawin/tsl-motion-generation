@@ -1,4 +1,9 @@
+import json
+
+# import json
+import os
 import pickle
+from datetime import datetime
 from pathlib import Path
 from typing import Any
 
@@ -292,12 +297,42 @@ class DatasetIO:
     #             ErrorCode.UNKNOWN_ERROR, message=f"save_to_dataset: {e}"
     #         )
 
-    # @staticmethod
-    # def load_json():
-    #     if not PathManager.RECENT_JSON_PATH.exists():
-    #         return error_result(error_code=ErrorCode.INVALID_INPUT)
+    def load_json(self) -> Any:
+        filepath = self._cfg.get_path(self._cfg.OUTPUT_JSON_PATH)
+        if not filepath.exists():
+            # msg = f"could not resolve json path {filepath}"
+            # self._logger.error(message=msg, module="DatasetIO.load_json")
+            # raise ValueError(msg)
+            return {}
 
-    #     with open(PathManager.RECENT_JSON_PATH, "r", encoding="utf-8") as f:
-    #         data = json.load(f)
+        with open(filepath, "r", encoding="utf-8") as f:
+            return json.load(f)
 
-    #     return success_result(data=data)
+    def add_motion_recent(self, motion_path: str, sentence: str) -> Any:
+
+        filepath = self._cfg.get_path(self._cfg.OUTPUT_JSON_PATH)
+        # if not filepath.exists():
+        #     msg = f"could not resolve json path {filepath}"
+        #     self._logger.error(message=msg, module="DatasetIO.load_json")
+        #     raise ValueError(msg)
+
+        new_entry = {
+            "video_path": motion_path,
+            "sentence": sentence,
+            "created_at": datetime.now().isoformat(),
+        }
+
+        if not os.path.exists(filepath):
+            filepath.parent.mkdir(parents=True, exist_ok=True)
+            data = {"recents": [new_entry]}
+        else:
+            with open(filepath, "r", encoding="utf-8") as f:
+                data = json.load(f)
+
+            data["recents"].append(new_entry)
+            data["recents"].sort(key=lambda x: x.get("created_at", ""), reverse=True)
+
+        with open(filepath, "w", encoding="utf-8") as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)
+
+        return data

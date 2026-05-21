@@ -10,11 +10,11 @@ class DatasetView:
     def __init__(self, controller: DatasetController) -> None:
         self._controller = controller
 
-    def render_dataset_tab(self, tab_id="dataset"):
+    def render_dataset_tab(self):
 
         df = cast(pd.DataFrame, self._controller.get_metadata_controller())
 
-        with gr.Tab("Dataset", id=tab_id):
+        with gr.Tab("Dataset"):
             with gr.Row():
                 with gr.Column(scale=1):
                     dict_total = gr.Label(value=str(len(df)), label="Dict Total")
