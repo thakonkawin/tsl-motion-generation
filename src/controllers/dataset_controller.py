@@ -1,9 +1,14 @@
 # from logging import exception
 
+from pathlib import Path
+
 import gradio as gr
 import pandas as pd
 
+from src.engine.generations.motion_generator import MotionGenerator
 from src.engine.preprocess.dataset_io import DatasetIO
+from src.engine.preprocess.video_pipeline import VideoPipeline
+from src.engine.visualizations.renderer import Renderer
 from src.utils.logger import Logger
 
 
@@ -11,6 +16,8 @@ class DatasetController:
     def __init__(self) -> None:
         self._logger = Logger()
         self._dataset_io = DatasetIO()
+        self._motion_generator = MotionGenerator()
+        self._video_pipeline = VideoPipeline()
 
     def on_select_word(self, table_df, evt: gr.SelectData) -> tuple[str, str, int, int]:
 
@@ -24,7 +31,7 @@ class DatasetController:
         return (
             str(row["sign_id"]),
             str(row["gloss"]),
-            int(row["fps"]),
+            int(row["frame_rate"]),
             int(row["num_frames"]),
         )
 
@@ -50,13 +57,32 @@ class DatasetController:
         except Exception as e:
             gr.Error(message=f"delete_data_controller: {e}")
 
-    def compute_mesh_controller(self, sign_id, fps, num_frames):
-        pass
-        # if sign_id is None or fps is None or num_frames is None:
-        #     gr.Warning("Please select a sign before computing")
+    def compute_mesh_controller(
+        self, sign_id: str, frame_rate: int, num_frames: int
+    ) -> Path | None:
 
-        # result = RenderService.render_gloss(sign_id, fps, num_frames)
-        # if not result.success:
-        #     gr.Warning(result.error_code)
+        try:
+            self._logger.info("Generating motion...")
+            motion_list = self._motion_generator.generate_gloss_motion(
+                motion_id=sign_id, num_frames=num_frames, gender="neutral"
+            )
 
-        # return result.data
+            self._logger.info("Rendering ...")
+            renderer = Renderer(
+                motion_id=sign_id,
+                motion_list=motion_list,
+                resolution=(512, 512),
+            )
+            renderer.run(sign_id=sign_id)
+
+            self._logger.info("Converting to video...")
+            ouput_path = self._video_pipeline.images_to_video(
+                motion_id=sign_id, frame_rate=frame_rate
+            )
+
+            self._logger.info("Done!")
+            return ouput_path
+
+        except Exception as e:
+            gr.Warning(message=f"compute_mesh_controller: {e}")
+            return None

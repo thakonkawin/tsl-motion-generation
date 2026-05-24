@@ -40,7 +40,7 @@ class Application:
 
     def run(self) -> None:
         demo = self.build()
-        demo.queue(max_size=3).launch(
+        demo.queue(max_size=10).launch(
             theme=gr.Theme.from_hub("Nymbo/Nymbo_Theme"),
             css_paths=self._cfg.get_path(path=self._cfg.CSS_PATH),
             allowed_paths=[
@@ -48,5 +48,6 @@ class Application:
                 str(self._cfg.get_path(path=self._cfg.OUTPUT_DIR)),
                 str(self._cfg.get_path(path=self._cfg.TMP_DIR)),
             ],
+            max_threads=2,
             debug=True,
         )

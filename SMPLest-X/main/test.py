@@ -5,9 +5,9 @@ from pathlib import Path
 
 import torch
 import torch.backends.cudnn as cudnn
-from app.base import Tester
-from app.config import Config
 from human_models.human_models import SMPL, SMPLX
+from main.base import Tester
+from main.config import Config
 from tqdm import tqdm
 
 

@@ -1,5 +1,9 @@
 import shutil
+
+# import imageio
+import subprocess
 import uuid
+from pathlib import Path
 
 import cv2
 
@@ -73,3 +77,105 @@ class VideoPipeline:
         gallery_items = [(path, str(i)) for i, path in enumerate(frame_paths, start=1)]
 
         return sign_id, fps, gallery_items, len(frame_paths)
+
+    def images_to_video(
+        self,
+        motion_id: str,
+        frame_rate: int = 30,
+    ) -> Path | None:
+
+        image_dir = self._cfg.get_path(path=self._cfg.OUTPUT_FRAME_DIR / motion_id)
+
+        image_paths = sorted(image_dir.glob("*.png"))
+
+        if not image_paths:
+            self._logger.error(
+                message="No PNG images found",
+                module="VideoPipeline.images_to_video",
+            )
+
+            return None
+
+        output_path = self._cfg.get_path(
+            path=self._cfg.OUTPUT_VIDEO_DIR / f"{motion_id}.mp4"
+        )
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+
+        input_pattern = str(image_dir / "%06d.png")
+
+        cmd = [
+            "ffmpeg",
+            "-y",
+            "-framerate",
+            str(frame_rate),
+            "-start_number",
+            "0",
+            "-i",
+            input_pattern,
+            "-vf",
+            "scale=trunc(iw/2)*2:trunc(ih/2)*2",
+            "-c:v",
+            "libx264",
+            "-pix_fmt",
+            "yuv420p",
+            str(output_path),
+        ]
+
+        self._logger.info(
+            message=f"Running ffmpeg command: {' '.join(cmd)}",
+            module="VideoPipeline.images_to_video",
+        )
+
+        try:
+            process = subprocess.Popen(
+                cmd,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                text=True,
+                bufsize=1,
+            )
+
+            output_lines = []
+
+            if process.stdout is None:
+                raise RuntimeError("Failed to capture subprocess stdout")
+
+            for line in process.stdout:
+                line = line.rstrip()
+
+                if line:
+                    output_lines.append(line)
+
+                    self._logger.info(
+                        message=line,
+                        module="VideoPipeline.images_to_video",
+                    )
+
+            return_code = process.wait()
+
+            if return_code != 0:
+                msg = f"FFmpeg failed with return code {return_code}\n" + "\n".join(
+                    output_lines
+                )
+
+                self._logger.error(
+                    message=msg,
+                    module="VideoPipeline.images_to_video",
+                )
+
+                return None
+
+            self._logger.info(
+                message=f"Video generated successfully: {output_path}",
+                module="VideoPipeline.images_to_video",
+            )
+
+            return output_path
+
+        except Exception as e:
+            self._logger.error(
+                message=str(e),
+                module="VideoPipeline.smplx_estimator",
+            )
+
+            return None

@@ -6,9 +6,9 @@ from pathlib import Path
 
 import torch.backends.cudnn as cudnn
 import torch.distributed as dist
-from app.base import Trainer
-from app.config import Config
 from human_models.human_models import SMPL, SMPLX
+from main.base import Trainer
+from main.config import Config
 from utils.distribute_utils import (
     get_dist_info,
     init_distributed_mode,

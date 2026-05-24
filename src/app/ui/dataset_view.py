@@ -61,7 +61,7 @@ class DatasetView:
                 show_row_numbers=True,
             )
 
-            fps = gr.State()
+            frame_rate = gr.State()
             num_frames = gr.State()
 
             table.select(
@@ -70,7 +70,7 @@ class DatasetView:
                 outputs=[
                     selected_sign_id,
                     selected_word,
-                    fps,
+                    frame_rate,
                     num_frames,
                 ],
             )
@@ -91,6 +91,6 @@ class DatasetView:
 
             compute_mesh_btn.click(
                 fn=self._controller.compute_mesh_controller,
-                inputs=[selected_sign_id, fps, num_frames],
+                inputs=[selected_sign_id, frame_rate, num_frames],
                 outputs=video_3d,
             )

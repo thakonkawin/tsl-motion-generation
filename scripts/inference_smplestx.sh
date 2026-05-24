@@ -5,76 +5,110 @@ CKPT_NAME=$1
 VIDEO_PATH=$2
 FPS=${3:-30}
 
-# 🔥 หา root ของ smplest_x
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(dirname "$SCRIPT_DIR")"
+SMPLX_DIR="$ROOT_DIR/SMPLest-X"
 
-# 🔥 normalize path
 VIDEO_PATH="$(realpath "$VIDEO_PATH")"
 
 FILE_NAME="$(basename "$VIDEO_PATH")"
 NAME="${FILE_NAME%.*}"
 EXT="${FILE_NAME##*.}"
-
-# 🔥 เปลี่ยน output ไปที่ core (optional)
-CORE_DIR="$(dirname "$ROOT_DIR")/core"
+EXT_LOWER="${EXT,,}"
 
 IMG_PATH="$ROOT_DIR/tmp/input_frames/$NAME"
 OUTPUT_PATH="$ROOT_DIR/tmp/output_frames/$NAME"
+RESULT_PATH="$ROOT_DIR/tmp/mesh/result_${NAME}.mp4"
 
 mkdir -p "$IMG_PATH"
 mkdir -p "$OUTPUT_PATH"
+mkdir -p "$(dirname "$RESULT_PATH")"
 
 echo "[INFO] Video: $VIDEO_PATH"
-echo "[INFO] Working dir: $ROOT_DIR"
+echo "[INFO] Root dir: $ROOT_DIR"
+echo "[INFO] SMPLest-X dir: $SMPLX_DIR"
 
-# -------- convert video to frames --------
-case "$EXT" in
+# -------- activate conda env --------
+source "$(conda info --base)/etc/profile.d/conda.sh"
+conda activate smplestx_v3
+
+# -------- clean old files --------
+rm -rf "$IMG_PATH"/*
+rm -rf "$OUTPUT_PATH"/*
+
+# -------- convert input to frames --------
+case "$EXT_LOWER" in
     mp4|avi|mov|mkv|flv|wmv|webm|mpeg|mpg)
-        ffmpeg -i "$VIDEO_PATH" -f image2 -vf fps=${FPS}/1 -qscale 0 "$IMG_PATH/%06d.jpg"
+        echo "[INFO] Extracting frames..."
+
+        ffmpeg -y \
+            -i "$VIDEO_PATH" \
+            -vf "fps=${FPS}" \
+            -q:v 1 \
+            "$IMG_PATH/%06d.jpg"
         ;;
-    jpg|jpeg|png|bmp|gif|tiff|tif|webp|svg)
-        cp "$VIDEO_PATH" "$IMG_PATH/000001.$EXT"
+
+    jpg|jpeg|png|bmp|gif|tiff|tif|webp)
+        echo "[INFO] Single image input detected..."
+
+        cp "$VIDEO_PATH" "$IMG_PATH/000001.jpg"
         ;;
+
     *)
-        echo "Unknown file type: $EXT"
+        echo "[ERROR] Unsupported file type: $EXT"
         exit 1
         ;;
 esac
 
 END_COUNT=$(find "$IMG_PATH" -type f | wc -l)
 
+if [ "$END_COUNT" -eq 0 ]; then
+    echo "[ERROR] No frames extracted"
+    exit 1
+fi
+
+echo "[INFO] Total frames: $END_COUNT"
+
+
+
+
 # -------- inference --------
-# PYTHONPATH="$ROOT_DIR/SMPLest-X:$PYTHONPATH" \
-# conda run -n smplestx_v3 python "$ROOT_DIR/SMPLest-X/main/inference.py" \
-#     --num_gpus 1 \
-#     --file_name "$NAME" \
-#     --ckpt_name "$CKPT_NAME" \
-#     --end "$END_COUNT"
-cd "$ROOT_DIR" && \
-PYTHONPATH="$ROOT_DIR/SMPLest-X:$PYTHONPATH" \
-conda run -n smplestx_v3 --no-capture-output \
-    python "$ROOT_DIR/SMPLest-X/main/inference.py" \
+echo "[INFO] Running SMPLest-X inference..."
+
+cd "$ROOT_DIR"
+
+export PYTHONPATH="$SMPLX_DIR"
+
+python "$SMPLX_DIR/main/inference.py" \
     --num_gpus 1 \
     --file_name "$NAME" \
     --ckpt_name "$CKPT_NAME" \
     --end "$END_COUNT"
 
-# -------- convert frames to video --------
-RESULT_PATH="$ROOT_DIR/tmp/mesh/result_${NAME}.mp4"
-mkdir -p "$(dirname "$RESULT_PATH")"
 
-case "$EXT" in
+# -------- render output --------
+case "$EXT_LOWER" in
     mp4|avi|mov|mkv|flv|wmv|webm|mpeg|mpg)
-        ffmpeg -y -f image2 -r ${FPS} -i "$OUTPUT_PATH/%06d.jpg" \
-            -c:v libx264 -pix_fmt yuv420p -crf 18 -preset fast "$RESULT_PATH"
+
+        echo "[INFO] Rendering video..."
+
+        ffmpeg -y \
+            -framerate "$FPS" \
+            -i "$OUTPUT_PATH/%06d.jpg" \
+            -c:v libx264 \
+            -pix_fmt yuv420p \
+            -crf 18 \
+            -preset fast \
+            "$RESULT_PATH"
+
+        echo "[DONE] Output: $RESULT_PATH"
         ;;
+
     *)
-        cp "$OUTPUT_PATH/000001.$EXT" "$CORE_DIR/outputs/result_$FILE_NAME"
+        RESULT_IMAGE="$ROOT_DIR/tmp/mesh/result_${FILE_NAME}"
+
+        cp "$OUTPUT_PATH/000001.jpg" "$RESULT_IMAGE"
+
+        echo "[DONE] Output: $RESULT_IMAGE"
         ;;
 esac
-
-# -------- cleanup --------
-# rm -rf "$ROOT_DIR/tmp"
-
-echo "[DONE] Output: $RESULT_PATH"

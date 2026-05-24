@@ -10,9 +10,9 @@ import numpy as np
 import torch
 import torch.backends.cudnn as cudnn
 import torchvision.transforms as transforms
-from app.base import Tester
-from app.config import Config
 from human_models.human_models import SMPLX
+from main.base import Tester
+from main.config import Config
 from tqdm import tqdm
 from ultralytics import YOLO
 from utils.data_utils import generate_patch_image, load_img, process_bbox
@@ -63,28 +63,6 @@ def save_smplx_params_correct(out, save_path):
         pickle.dump(data, f)
 
 
-def inspect_smplx_output(out):
-
-    def to_np(x):
-        return x.detach().cpu().numpy()
-
-    print("\n================ SMPL-X OUTPUT ================")
-
-    for k, v in out.items():
-        print(f"\n🔹 Key: {k}")
-        print(f"   Type: {type(v)}")
-
-        if torch.is_tensor(v):
-            v = to_np(v)
-            print(f"   Shape: {v.shape}")
-            print(f"   Dtype: {v.dtype}")
-            print(f"   Min: {v.min():.4f}  Max: {v.max():.4f}")
-        else:
-            print(f"   Value: {v}")
-
-    print("==============================================\n")
-
-
 def main():
     args = parse_args()
     cudnn.benchmark = True
@@ -126,7 +104,7 @@ def main():
 
     # init tester
     demoer = Tester(cfg)
-    demoer.logger.info(f"Using 1 GPU.")
+    # demoer.logger.info(f"Using 1 GPU.")
     demoer.logger.info(
         f"Inference [{args.file_name}] with [{cfg.model.pretrained_model_path}]."
     )
@@ -216,7 +194,6 @@ def main():
             # add-new
             param_path = osp.join(param_folder, f"frame_{int(frame):06d}.pkl")
             save_smplx_params_correct(out, param_path)
-            # inspect_smplx_output(out)
 
             mesh = out["smplx_mesh_cam"].detach().cpu().numpy()[0]
 

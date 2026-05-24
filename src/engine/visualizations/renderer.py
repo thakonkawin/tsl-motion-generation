@@ -1,3 +1,6 @@
+import subprocess
+import sys
+
 from src.engine.visualizations.blender import Blender
 from src.utils.config import AppConfig
 from src.utils.logger import Logger
@@ -52,6 +55,34 @@ class Renderer:
             )
 
         self._logger.success("[Render] Completed")
+
+    def run(self, sign_id: str) -> None:
+        try:
+            print("[INFO] Creating gloss motion...")
+
+            # filepath = self._cfg.get_path(self._cfg.RENDER_SCRIPT_PATH)
+
+            cmd = [
+                sys.executable,
+                "-m",
+                "src.engine.visualizations.render_script",
+                sign_id,
+            ]
+
+            result = subprocess.run(cmd, capture_output=True, text=True)
+
+            if result.returncode != 0:
+                self._logger.error(
+                    message=result.stderr, module="Renderer.run"
+                )  # ดู error จริง
+                raise RuntimeError(f"Subprocess failed:\n{result.stderr}")
+
+            return None
+
+        except Exception as e:
+            msg = f"Render invalid.{e}"
+            self._logger.error(message=msg, module="Renderer.run")
+            raise RuntimeError(msg)
 
     # def render_gloss(sign_id, fps, num_frames):
     #     try:

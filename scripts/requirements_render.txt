@@ -3,3 +3,4 @@ gradio
 pydantic_settings
 fake-bpy-module-latest
 h5py
+imageio

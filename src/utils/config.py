@@ -1,3 +1,4 @@
+import glob
 from pathlib import Path
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -17,15 +18,19 @@ class AppConfig(BaseSettings):
     TMP_UPLOAD_VIDEO_DIR: Path = Path("tmp/upload/videos")
     TMP_UPLOAD_FRAME_DIR: Path = Path("tmp/upload/frames")
     TMP_MESH_DIR: Path = Path("tmp/mesh")
+    TMP_SMPLX_PARAMETER_DIR: Path = Path("tmp/smplx_params")
+
     # Output
     OUTPUT_DIR: Path = Path("outputs")
     OUTPUT_FRAME_DIR: Path = Path("outputs/frames")
+    OUTPUT_VIDEO_DIR: Path = Path("outputs/videos")
     OUTPUT_JSON_PATH: Path = Path("outputs/recents/recent.json")
     # Blender
     BLEND_ADDON_NAME: str = "smplx_blender_addon"
-    BLEND_ADDON_ZIP: Path = Path("blender/smplx_blender_addon_300_20220623.zip")
-    BLEND_FILE: Path = Path("blender/tsl_4d_model.blend")
-    BLEND_ADDON_DATA_DIR: Path = Path("smplx_blender_addon/data")
+    BLEND_ADDON_ZIP: Path = Path("assets/blender/smplx_blender_addon_300_20220623.zip")
+    BLEND_FILE: Path = Path("assets/blender/tsl_4d_model.blend")
+    BLEND_ADDON_DATA_DIR: Path = Path("assets/blender/smplx_blender_addon/data")
+    RENDER_SCRIPT_PATH: Path = Path("src/engine/visualizations/render_script.py")
     # UI
     CSS_PATH: Path = Path("src/app/components/styles.css")
     # Models
@@ -56,3 +61,9 @@ class AppConfig(BaseSettings):
             output_path.parent.mkdir(parents=True, exist_ok=True)
 
         return output_path
+
+    def get_list_file_paths(self, path: Path, vid: str, ext: str) -> list:
+        ext = ext.lstrip(".")
+
+        pattern = self.ROOT_DIR / path / vid / f"*{ext}"
+        return sorted(glob.glob(str(pattern)))

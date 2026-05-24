@@ -1,6 +1,4 @@
 import json
-
-# import json
 import os
 import pickle
 from datetime import datetime
@@ -8,16 +6,19 @@ from pathlib import Path
 from typing import Any
 
 import h5py
+import numpy as np
 import pandas as pd
 
 from src.utils.config import AppConfig
 from src.utils.logger import Logger
+from src.utils.transaction import TransactionManager
 
 
 class DatasetIO:
     def __init__(self) -> None:
         self._logger = Logger()
         self._cfg = AppConfig()
+        self._tx = TransactionManager()
 
     def load_metadata(self) -> pd.DataFrame:
         filepath = self._cfg.get_path(self._cfg.METADATA_PATH)
@@ -99,210 +100,207 @@ class DatasetIO:
             )
             raise RuntimeError(str(e))
 
+    def load_pkl(self, path: Path) -> Any:
+        with open(path, "rb") as f:
+            return pickle.load(f)
+
     def dump_pkl(self, path: Path | str, data: Any) -> None:
         with open(path, "wb") as f:
             pickle.dump(data, f)
 
-    # def _save_vertices(paths, video_id):
+    def _save_vertices(self, paths: list, video_id: str) -> bool:
 
-    #     try:
-    #         # Collect parameter data
-    #         global_orient = []
-    #         body_pose = []
-    #         left_hand_pose = []
-    #         right_hand_pose = []
-    #         jaw_pose = []
-    #         leye_pose = []
-    #         reye_pose = []
-    #         transl = []
-    #         betas = []
-    #         expression = []
+        try:
+            # Collect parameter data
+            global_orient = []
+            body_pose = []
+            left_hand_pose = []
+            right_hand_pose = []
+            jaw_pose = []
+            leye_pose = []
+            reye_pose = []
+            transl = []
+            betas = []
+            expression = []
 
-    #         for pkl_path in paths:
-    #             data = load_pkl(pkl_path)
+            for pkl_path in paths:
+                data = self.load_pkl(pkl_path)
 
-    #             global_orient.append(data["global_orient"][0])
-    #             body_pose.append(data["body_pose"][0])
-    #             left_hand_pose.append(data["left_hand_pose"][0])
-    #             right_hand_pose.append(data["right_hand_pose"][0])
-    #             jaw_pose.append(data["jaw_pose"][0])
-    #             leye_pose.append(data["leye_pose"][0])
-    #             reye_pose.append(data["reye_pose"][0])
-    #             transl.append(data["transl"][0])
-    #             betas.append(data["betas"][0])
-    #             expression.append(data["expression"][0])
+                global_orient.append(data["global_orient"][0])
+                body_pose.append(data["body_pose"][0])
+                left_hand_pose.append(data["left_hand_pose"][0])
+                right_hand_pose.append(data["right_hand_pose"][0])
+                jaw_pose.append(data["jaw_pose"][0])
+                leye_pose.append(data["leye_pose"][0])
+                reye_pose.append(data["reye_pose"][0])
+                transl.append(data["transl"][0])
+                betas.append(data["betas"][0])
+                expression.append(data["expression"][0])
 
-    #         # Convert to numpy
-    #         global_orient = np.asarray(global_orient, dtype=np.float32)
-    #         body_pose = np.asarray(body_pose, dtype=np.float32)
-    #         left_hand_pose = np.asarray(left_hand_pose, dtype=np.float32)
-    #         right_hand_pose = np.asarray(right_hand_pose, dtype=np.float32)
-    #         jaw_pose = np.asarray(jaw_pose, dtype=np.float32)
-    #         leye_pose = np.asarray(leye_pose, dtype=np.float32)
-    #         reye_pose = np.asarray(reye_pose, dtype=np.float32)
-    #         transl = np.asarray(transl, dtype=np.float32)
-    #         betas = np.asarray(betas, dtype=np.float32)
-    #         expression = np.asarray(expression, dtype=np.float32)
+            # Convert to numpy
+            global_orient = np.asarray(global_orient, dtype=np.float32)
+            body_pose = np.asarray(body_pose, dtype=np.float32)
+            left_hand_pose = np.asarray(left_hand_pose, dtype=np.float32)
+            right_hand_pose = np.asarray(right_hand_pose, dtype=np.float32)
+            jaw_pose = np.asarray(jaw_pose, dtype=np.float32)
+            leye_pose = np.asarray(leye_pose, dtype=np.float32)
+            reye_pose = np.asarray(reye_pose, dtype=np.float32)
+            transl = np.asarray(transl, dtype=np.float32)
+            betas = np.asarray(betas, dtype=np.float32)
+            expression = np.asarray(expression, dtype=np.float32)
 
-    #         # Save to HDF5
-    #         h5_path = PathManager.TSL_H5_PATH
-    #         with h5py.File(h5_path, "a") as h5f:
-    #             # overwrite old vid
-    #             if video_id in h5f:
-    #                 del h5f[video_id]
+            # Save to HDF5
+            h5_path = self._cfg.get_path(self._cfg.DATASET_PATH)
+            with h5py.File(h5_path, "a") as h5f:
+                # overwrite old vid
+                if video_id in h5f:
+                    del h5f[video_id]
 
-    #             sample_group = h5f.create_group(video_id)
+                sample_group = h5f.create_group(video_id)
 
-    #             # Vertice Group
-    #             vt_group = sample_group.create_group("vertices")
-    #             vt_group.create_dataset("betas", data=betas)
-    #             vt_group.create_dataset("global_orient", data=global_orient)
-    #             vt_group.create_dataset("body_pose", data=body_pose)
-    #             vt_group.create_dataset("left_hand_pose", data=left_hand_pose)
-    #             vt_group.create_dataset("right_hand_pose", data=right_hand_pose)
-    #             vt_group.create_dataset("jaw_pose", data=jaw_pose)
-    #             vt_group.create_dataset("leye_pose", data=leye_pose)
-    #             vt_group.create_dataset("reye_pose", data=reye_pose)
-    #             vt_group.create_dataset("transl", data=transl)
-    #             vt_group.create_dataset("expression", data=expression)
+                # Vertice Group
+                vt_group = sample_group.create_group("vertices")
+                vt_group.create_dataset("betas", data=betas)
+                vt_group.create_dataset("global_orient", data=global_orient)
+                vt_group.create_dataset("body_pose", data=body_pose)
+                vt_group.create_dataset("left_hand_pose", data=left_hand_pose)
+                vt_group.create_dataset("right_hand_pose", data=right_hand_pose)
+                vt_group.create_dataset("jaw_pose", data=jaw_pose)
+                vt_group.create_dataset("leye_pose", data=leye_pose)
+                vt_group.create_dataset("reye_pose", data=reye_pose)
+                vt_group.create_dataset("transl", data=transl)
+                vt_group.create_dataset("expression", data=expression)
 
-    #         return success_result()
+            return True
 
-    #     except Exception as e:
-    #         return error_result(ErrorCode.UNKNOWN_ERROR, message=f"_save_vertices: {e}")
+        except Exception as e:
+            raise RuntimeError(str(e))
 
-    # @staticmethod
-    # def _save_csv(
-    #     path: str,
-    #     video_id: str,
-    #     gloss: str,
-    #     fps: float,
-    #     num_frames: int,
-    #     frame_start: int,
-    #     frame_end: int,
-    # ):
+    def _save_csv(
+        self,
+        path: Path,
+        video_id: str,
+        gloss: str,
+        frame_rate: float,
+        num_frames: int,
+        frame_start: int,
+        frame_end: int,
+    ) -> bool:
 
-    #     row = {
-    #         "sign_id": video_id,
-    #         "gloss": gloss,
-    #         "fps": fps,
-    #         "num_frames": num_frames,
-    #         "frame_start": frame_start,
-    #         "frame_end": frame_end,
-    #     }
+        row = {
+            "sign_id": video_id,
+            "gloss": gloss,
+            "frame_rate": frame_rate,
+            "num_frames": num_frames,
+            "frame_start": frame_start,
+            "frame_end": frame_end,
+        }
 
-    #     try:
-    #         file_exists = os.path.exists(path) and os.path.getsize(path) > 0
+        try:
+            file_exists = os.path.exists(path) and os.path.getsize(path) > 0
 
-    #         if file_exists:
-    #             try:
-    #                 df = pd.read_csv(path)
-    #                 df = df[df["sign_id"] != video_id]
-    #                 df = pd.concat([df, pd.DataFrame([row])], ignore_index=True)
-    #             except pd.errors.EmptyDataError:
-    #                 df = pd.DataFrame([row])
-    #         else:
-    #             df = pd.DataFrame([row])
+            if file_exists:
+                try:
+                    df = pd.read_csv(path)
+                    df = df[df["sign_id"] != video_id]
+                    df = pd.concat([df, pd.DataFrame([row])], ignore_index=True)
+                except pd.errors.EmptyDataError:
+                    df = pd.DataFrame([row])
+            else:
+                df = pd.DataFrame([row])
 
-    #         df.to_csv(path, index=False)
-    #         return success_result()
+            df.to_csv(path, index=False)
 
-    #     except Exception as e:
-    #         return error_result(ErrorCode.UNKNOWN_ERROR, message=f"_save_csv: {e}")
+            return True
 
-    # @staticmethod
-    # def _rollback_vertices(video_id):
-    #     with h5py.File(PathManager.TSL_H5_PATH, "a") as h5f:
-    #         if video_id in h5f:
-    #             del h5f[video_id]
+        except Exception as e:
+            raise RuntimeError(str(e))
 
     # @staticmethod
-    # def _rollback_keypoints(video_id):
-    #     with h5py.File(PathManager.TSL_H5_PATH, "a") as h5f:
-    #         if video_id in h5f:
-    #             del h5f[video_id]
+    def _rollback_vertices(self, video_id: str):
+        with h5py.File(self._cfg.get_path(self._cfg.DATASET_PATH), "a") as h5f:
+            if video_id in h5f:
+                del h5f[video_id]
 
     # @staticmethod
-    # def _rollback_csv(video_id):
-    #     path = PathManager.METADATA_PATH
-    #     if not path.exists():
-    #         return
-
-    #     df = pd.read_csv(path)
-    #     df = df[df["sign_id"] != video_id]
-    #     df.to_csv(path, index=False)
+    def _rollback_keypoints(self, video_id: str):
+        with h5py.File(self._cfg.get_path(self._cfg.DATASET_PATH), "a") as h5f:
+            if video_id in h5f:
+                del h5f[video_id]
 
     # @staticmethod
-    # def save_to_dataset(
-    #     video_id,
-    #     gloss,
-    #     fps,
-    #     num_frames,
-    #     frame_start,
-    #     frame_end,
-    # ):
+    def _rollback_csv(self, video_id: str):
+        path = self._cfg.get_path(self._cfg.METADATA_PATH)
+        if not path.exists():
+            return
 
-    #     tx = TransactionManager()
+        df = pd.read_csv(path)
+        df = df[df["sign_id"] != video_id]
+        df.to_csv(path, index=False)
 
-    #     try:
-    #         # Find files
-    #         pkl_paths = PathManager.get_tmp_smplx_pkl_paths(video_id)
-    #         # kp_paths = (PathManager.get_tmp_keypoint_json_paths(video_id))
-    #         # if not pkl_paths or not kp_paths:
-    #         #     return False, "⚠️ No dataset files"
+    def save_to_dataset(
+        self,
+        video_id: str,
+        gloss: str,
+        frame_rate: int,
+        num_frames: int,
+        frame_start: int,
+        frame_end: int,
+    ):
 
-    #         # # Save keypoints
-    #         # keypoint_result = _save_keypoints(paths=kp_paths, video_id=video_id)
-    #         # if not keypoint_result.success:
-    #         #     tx.rollback()
-    #         # return error_result(keypoint_result.error_code, keypoint_result.message)
+        try:
+            pkl_paths = self._cfg.get_list_file_paths(
+                path=self._cfg.TMP_SMPLX_PARAMETER_DIR, vid=video_id, ext=".pkl"
+            )
 
-    #         # tx.add_rollback(_rollback_keypoints, video_id)
+            vertice_result = self._save_vertices(paths=pkl_paths, video_id=video_id)
+            if not vertice_result:
+                self._tx.rollback()
+                msg = f"_save_vertices: {vertice_result}"
+                self._logger.error(
+                    message=msg,
+                    module="DatasetIO.save_to_dataset",
+                )
+                raise RuntimeError(msg)
 
-    #         # Save vertices
-    #         vertice_result = DatasetService._save_vertices(
-    #             paths=pkl_paths, video_id=video_id
-    #         )
-    #         if not vertice_result.success:
-    #             tx.rollback()
-    #             return error_result(vertice_result.error_code, vertice_result.message)
+            self._tx.add_rollback(self._rollback_vertices, video_id)
 
-    #         tx.add_rollback(DatasetService._rollback_vertices, video_id)
+            # Save CSV
+            csv_result = self._save_csv(
+                path=self._cfg.get_path(path=self._cfg.METADATA_PATH),
+                video_id=video_id,
+                gloss=gloss,
+                frame_rate=frame_rate,
+                num_frames=num_frames,
+                frame_start=frame_start,
+                frame_end=frame_end,
+            )
 
-    #         csv_path = str(PathManager.METADATA_PATH)
+            if not csv_result:
+                self._tx.rollback()
+                msg = f"_save_csv: {csv_result}"
+                self._logger.error(
+                    message=msg,
+                    module="DatasetIO.save_to_dataset",
+                )
+                raise RuntimeError(msg)
 
-    #         # Save CSV
-    #         csv_result = DatasetService._save_csv(
-    #             path=csv_path,
-    #             video_id=video_id,
-    #             gloss=gloss,
-    #             fps=fps,
-    #             num_frames=num_frames,
-    #             frame_start=frame_start,
-    #             frame_end=frame_end,
-    #         )
+            self._tx.add_rollback(self._rollback_csv, video_id)
 
-    #         if not csv_result.success:
-    #             tx.rollback()
-    #             return error_result(csv_result.error_code, csv_result.message)
+            # Success
+            return None
 
-    #         tx.add_rollback(DatasetService._rollback_csv, video_id)
-
-    #         # Success
-    #         return success_result(message="✅ Save dataset success")
-
-    #     except Exception as e:
-    #         tx.rollback()
-    #         return error_result(
-    #             ErrorCode.UNKNOWN_ERROR, message=f"save_to_dataset: {e}"
-    #         )
+        except Exception as e:
+            self._tx.rollback()
+            self._logger.error(
+                message=str(e),
+                module="DatasetIO.save_to_dataset",
+            )
+            raise RuntimeError(str(e))
 
     def load_json(self) -> Any:
         filepath = self._cfg.get_path(self._cfg.OUTPUT_JSON_PATH)
         if not filepath.exists():
-            # msg = f"could not resolve json path {filepath}"
-            # self._logger.error(message=msg, module="DatasetIO.load_json")
-            # raise ValueError(msg)
             return {}
 
         with open(filepath, "r", encoding="utf-8") as f:
@@ -311,10 +309,10 @@ class DatasetIO:
     def add_motion_recent(self, motion_path: str, sentence: str) -> Any:
 
         filepath = self._cfg.get_path(self._cfg.OUTPUT_JSON_PATH)
-        # if not filepath.exists():
-        #     msg = f"could not resolve json path {filepath}"
-        #     self._logger.error(message=msg, module="DatasetIO.load_json")
-        #     raise ValueError(msg)
+        if not filepath.exists():
+            msg = f"could not resolve json path {filepath}"
+            self._logger.error(message=msg, module="DatasetIO.load_json")
+            raise ValueError(msg)
 
         new_entry = {
             "video_path": motion_path,
@@ -336,3 +334,17 @@ class DatasetIO:
             json.dump(data, f, ensure_ascii=False, indent=2)
 
         return data
+
+        # Find files
+
+        # kp_paths = (PathManager.get_tmp_keypoint_json_paths(video_id))
+        # if not pkl_paths or not kp_paths:
+        #     return False, "⚠️ No dataset files"
+
+        # # Save keypoints
+        # keypoint_result = _save_keypoints(paths=kp_paths, video_id=video_id)
+        # if not keypoint_result.success:
+        #     tx.rollback()
+        # return error_result(keypoint_result.error_code, keypoint_result.message)
+
+        # tx.add_rollback(_rollback_keypoints, video_id)
