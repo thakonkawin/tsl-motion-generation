@@ -18,6 +18,9 @@ def main():
             path=Path(target_path), vid=sign_id, ext=".pkl"
         )
 
+        total = len(motion_list)
+        print(f"PROGRESS:TOTAL:{total}", flush=True)
+
         renderer = Renderer(
             motion_id=sign_id,
             motion_list=motion_list,

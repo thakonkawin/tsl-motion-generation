@@ -2,6 +2,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+import gradio as gr
+
 from src.engine.visualizations.blender import Blender
 from src.utils.config import AppConfig
 from src.utils.logger import Logger
@@ -42,6 +44,7 @@ class Renderer:
             self._logger.info(message=f"[Render] Loading pose {idx + 1}/{total_frames}")
 
             self._blender.smplx_load_pose(motion_path=str(motion_path))
+            print(f"PROGRESS:FRAME:{idx + 1}:{total_frames}", flush=True)
 
             frame_path = self._cfg.get_index_file_path(
                 path=self._cfg.OUTPUT_FRAME_DIR, id=self.motion_id, index=idx
@@ -56,7 +59,13 @@ class Renderer:
 
         self._logger.success("[Render] Completed")
 
-    def run(self, sign_id: str, target_path: Path) -> None:
+    def run(
+        self,
+        sign_id: str,
+        target_path: Path,
+        progress: gr.Progress,
+    ) -> None:
+
         try:
             cmd = [
                 sys.executable,
@@ -66,15 +75,51 @@ class Renderer:
                 str(target_path),
             ]
 
-            result = subprocess.run(cmd, capture_output=True, text=True)
+            process = subprocess.Popen(
+                cmd,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+                bufsize=1,
+            )
 
-            if result.returncode != 0:
-                self._logger.error(message=result.stderr, module="Renderer.run")
-                raise RuntimeError(f"Subprocess failed:\n{result.stderr}")
+            if process.stdout is None:
+                raise RuntimeError("stdout pipe not available")
 
-            return None
+            for line in process.stdout:
+                line = line.strip()
+
+                if line.startswith("PROGRESS:FRAME:"):
+                    parts = line.split(":")
+
+                    current = int(parts[2])
+                    total = int(parts[3])
+
+                    progress(
+                        current / total, desc=f"Rendering... {current}/{total} frames"
+                    )
+
+            process.wait()
+
+            if process.returncode != 0:
+                stderr = ""
+
+                if process.stderr is not None:
+                    stderr = process.stderr.read()
+
+                self._logger.error(
+                    message=stderr,
+                    module="Renderer.run",
+                )
+
+                raise RuntimeError(f"Subprocess failed:\n{stderr}")
 
         except Exception as e:
-            msg = f"Render invalid.{e}"
-            self._logger.error(message=msg, module="Renderer.run")
+            msg = f"Render invalid. {e}"
+
+            self._logger.error(
+                message=msg,
+                module="Renderer.run",
+            )
+
             raise RuntimeError(msg)

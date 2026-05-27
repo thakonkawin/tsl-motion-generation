@@ -1,3 +1,4 @@
+import time
 import traceback
 from pathlib import Path
 from typing import Any
@@ -22,21 +23,15 @@ class Text2MotionController:
         self._lang_retrieval = LanguageRetrieval()
         self._video_pipeline = VideoPipeline()
 
-        # progress = gr.Progress()
-        # total_frames = 100
-
-        # for i in range(total_frames):
-        #     time.sleep(0.05)
-
-        #     percent = (i + 1) / total_frames
-
-        #     progress(percent, desc=f"Rendering .... {i + 1}/{total_frames} frame")
-
-    def generate_tsl_controller(self, text_input: str) -> Path | None:
+    def generate_tsl_controller(
+        self, text_input: str, progress=gr.Progress()
+    ) -> Path | None:
 
         try:
+            start = time.time()
             self._logger.info(f"Retrieving glosses... {text_input}")
 
+            progress(0.1, desc="Retrieving glosses...")
             gloss_sequence = self._lang_retrieval.retrieve_glosses(
                 text_input=text_input
             )
@@ -48,31 +43,29 @@ class Text2MotionController:
                 )
                 gr.Error(message=msg)
 
-            self._logger.info("Generating motion...")
-
+            progress(0.2, desc="Generating motion...")
             motion_list, motion_id, frame_rate, _ = (
                 self._motion_generator.generate_sentence_motion(
                     gloss_sequence=gloss_sequence, gender="neutral"
                 )
             )
 
-            self._logger.info(f"motion_id={motion_id}")
-            self._logger.info(f"motion_list length={len(motion_list)}")
-
             if len(motion_list) > 0:
                 self._logger.info(f"first motion={motion_list[0]}")
 
-            self._logger.info("Rendering...")
+            progress(0.3, desc="Starting render...")
             renderer = Renderer(
                 motion_id=motion_id,
                 motion_list=motion_list,
                 resolution=(512, 512),
             )
             renderer.run(
-                sign_id=motion_id, target_path=self._cfg.TMP_MOTION_SENTENCE_DIR
+                sign_id=motion_id,
+                target_path=self._cfg.TMP_MOTION_SENTENCE_DIR,
+                progress=progress,
             )
 
-            self._logger.info("Converting images to video...")
+            progress(0.95, desc="Converting to video...")
             output_path = self._video_pipeline.images_to_video(
                 motion_id=motion_id,
                 frame_rate=frame_rate,
@@ -83,7 +76,10 @@ class Text2MotionController:
                 gr.Error(message="Video generation failed")
                 return None
 
-            self._logger.info("Done!")
+            progress(1.0, desc="Done!")
+            elapsed = time.time() - start
+            render_time = f"Time Redering: {elapsed / 60:.2f} Minutes"
+            self._logger.info(render_time)
             return output_path
 
         except Exception as e:

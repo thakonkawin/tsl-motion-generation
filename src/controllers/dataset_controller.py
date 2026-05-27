@@ -1,3 +1,4 @@
+import time
 from pathlib import Path
 
 import gradio as gr
@@ -58,29 +59,38 @@ class DatasetController:
             gr.Error(message=f"delete_data_controller: {e}")
 
     def compute_mesh_controller(
-        self, sign_id: str, frame_rate: int, num_frames: int
+        self, sign_id: str, frame_rate: int, num_frames: int, progress=gr.Progress()
     ) -> Path | None:
 
         try:
-            self._logger.info("Generating motion...")
+            start = time.time()
+            progress(0.1, desc="Generating motion...")
             motion_list = self._motion_generator.generate_gloss_motion(
                 motion_id=sign_id, num_frames=num_frames, gender="neutral"
             )
 
-            self._logger.info("Rendering ...")
+            progress(0.3, desc="Starting render...")
             renderer = Renderer(
                 motion_id=sign_id,
                 motion_list=motion_list,
                 resolution=(512, 512),
             )
-            renderer.run(sign_id=sign_id, target_path=self._cfg.TMP_MOTION_GLOSS_DIR)
+            renderer.run(
+                sign_id=sign_id,
+                target_path=self._cfg.TMP_MOTION_GLOSS_DIR,
+                progress=progress,
+            )
 
-            self._logger.info("Converting to video...")
+            progress(0.95, desc="Converting to video...")
             ouput_path = self._video_pipeline.images_to_video(
                 motion_id=sign_id, frame_rate=frame_rate
             )
 
             self._logger.info("Done!")
+            progress(1.0, desc="Done!")
+            elapsed = time.time() - start
+            render_time = f"Time Redering: {elapsed / 60:.2f} Minutes"
+            self._logger.info(render_time)
             return ouput_path
 
         except Exception as e:

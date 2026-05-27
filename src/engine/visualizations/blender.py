@@ -63,103 +63,166 @@ class Blender:
     def configure_render_quality(self, scene, resolution: tuple) -> None:
         # Engine
         scene.render.engine = "CYCLES"
-        # GPU Auto-Detection
+
         prefs = bpy.context.preferences
         cycles_prefs = prefs.addons["cycles"].preferences
+
         BACKEND_PRIORITY = ["OPTIX", "CUDA", "HIP", "ONEAPI", "METAL"]
-        # Per-backend optimal settings
-        # (tile_size, samples, min_samples, denoiser)
+
         BACKEND_PROFILES = {
-            "OPTIX": (512, 64, 32, "OPTIX"),
-            "CUDA": (256, 96, 48, "OPENIMAGEDENOISE"),
-            "HIP": (256, 96, 48, "OPENIMAGEDENOISE"),
-            "ONEAPI": (128, 128, 64, "OPENIMAGEDENOISE"),
-            "METAL": (256, 128, 64, "OPENIMAGEDENOISE"),
-            None: (64, 256, 128, "OPENIMAGEDENOISE"),  # CPU fallback
+            "OPTIX": (
+                2048,  # tile size
+                24,  # samples
+                8,  # min samples
+                "OPTIX",  # denoiser
+            ),
+            "CUDA": (1024, 48, 16, "OPENIMAGEDENOISE"),
+            "HIP": (1024, 48, 16, "OPENIMAGEDENOISE"),
+            "ONEAPI": (512, 64, 24, "OPENIMAGEDENOISE"),
+            "METAL": (1024, 64, 24, "OPENIMAGEDENOISE"),
+            None: (128, 128, 32, "OPENIMAGEDENOISE"),  # CPU fallback
         }
+
         selected_backend = None
         detected_gpu_names = []
+
+        # ── GPU Detection ───────────────────────────────────────────
         for backend in BACKEND_PRIORITY:
             try:
                 cycles_prefs.compute_device_type = backend
                 cycles_prefs.refresh_devices()
+
                 gpu_devices = [d for d in cycles_prefs.devices if d.type != "CPU"]
+
                 if not gpu_devices:
                     continue
+
                 for device in cycles_prefs.devices:
                     device.use = device.type != "CPU"
+
                 selected_backend = backend
                 detected_gpu_names = [d.name for d in gpu_devices if d.use]
                 break
+
             except Exception:
                 continue
-        # CPU fallback
+
+        # ── Device Selection ────────────────────────────────────────
         if selected_backend:
             scene.cycles.device = "GPU"
         else:
             cycles_prefs.compute_device_type = "NONE"
             scene.cycles.device = "CPU"
-        # Unpack profile for selected backend
+
         tile_size, samples, min_samples, denoiser = BACKEND_PROFILES[selected_backend]
-        # Resolution
+
+        # ── Resolution ──────────────────────────────────────────────
         scene.render.resolution_x = resolution[0]
         scene.render.resolution_y = resolution[1]
         scene.render.resolution_percentage = 100
-        # Output Format
+
+        # ── Output Format ───────────────────────────────────────────
         scene.render.use_file_extension = True
+
         scene.render.image_settings.file_format = "PNG"
         scene.render.image_settings.color_mode = "RGB"
         scene.render.image_settings.color_depth = "8"
         scene.render.image_settings.compression = 0
-        # Color Management
+
+        # ── Color Management ────────────────────────────────────────
         scene.display_settings.display_device = "sRGB"
+
         scene.view_settings.view_transform = "Standard"
         scene.view_settings.look = "None"
         scene.view_settings.exposure = 0.0
         scene.view_settings.gamma = 1.0
+
         scene.sequencer_colorspace_settings.name = "sRGB"
-        # Metadata
+
+        # ── Metadata ────────────────────────────────────────────────
         scene.render.use_stamp = False
-        # Sampling
+
+        # ── Sampling ────────────────────────────────────────────────
         scene.cycles.use_adaptive_sampling = True
+
         scene.cycles.samples = samples
         scene.cycles.adaptive_min_samples = min_samples
-        scene.cycles.adaptive_threshold = 0.01
-        # Denoising
+
+        # Faster adaptive stop
+        scene.cycles.adaptive_threshold = 0.05
+
+        # ── Denoising ───────────────────────────────────────────────
         scene.cycles.use_denoising = True
         scene.cycles.denoiser = denoiser
+
+        # FAST = เร็วกว่า ACCURATE พอสมควร
         scene.cycles.denoising_prefilter = "FAST"
+
         scene.cycles.use_preview_denoising = False
-        # Light & Noise
+
+        # ── Lighting / Noise ────────────────────────────────────────
         scene.cycles.use_light_tree = True
-        scene.cycles.sample_clamp_indirect = 3.0
-        scene.cycles.blur_glossy = 0.5
-        # Bounces
-        scene.cycles.max_bounces = 6
-        scene.cycles.diffuse_bounces = 2
+
+        scene.cycles.sample_clamp_indirect = 2.0
+        scene.cycles.blur_glossy = 1.0
+
+        # ── Fast GI Approximation ───────────────────────────────────
+        scene.cycles.use_fast_gi = True
+        scene.cycles.ao_bounces = 1
+        scene.cycles.ao_bounces_render = 1
+
+        # ── Bounces ─────────────────────────────────────────────────
+        scene.cycles.max_bounces = 4
+
+        scene.cycles.diffuse_bounces = 1
         scene.cycles.glossy_bounces = 2
-        scene.cycles.transmission_bounces = 4
+        scene.cycles.transmission_bounces = 2
+
         scene.cycles.volume_bounces = 0
-        scene.cycles.transparent_max_bounces = 4
-        # Performance
-        scene.cycles.use_auto_tile = True
+        scene.cycles.transparent_max_bounces = 2
+
+        # ── Performance ─────────────────────────────────────────────
+        scene.cycles.use_auto_tile = False
         scene.cycles.tile_size = tile_size
+
         scene.render.threads_mode = "AUTO"
+
+        # สำคัญมากสำหรับ animation/batch render
         scene.render.use_persistent_data = True
-        # Disable Unused Features
+
+        # ── BVH Optimization ────────────────────────────────────────
+        scene.cycles.debug_use_spatial_splits = True
+        scene.cycles.debug_bvh_type = "STATIC_BVH"
+
+        # ── Texture Optimization ────────────────────────────────────
+        scene.render.use_simplify = True
+
+        # ลด subdivision render
+        scene.render.simplify_subdivision_render = 1
+
+        # จำกัด texture สูงสุด
+        scene.cycles.texture_limit_render = "4096"
+
+        # ── Disable Unused Features ─────────────────────────────────
         scene.render.use_motion_blur = False
         scene.render.use_freestyle = False
-        # Summary Log
+
+        # ── Logging ─────────────────────────────────────────────────
         gpu_label = ", ".join(detected_gpu_names) if detected_gpu_names else "CPU"
-        mgs = str(
-            f"[Render] Device={scene.cycles.device} | "
+
+        msg = (
+            f"[Render] "
+            f"Device={scene.cycles.device} | "
             f"Backend={selected_backend or 'CPU'} | "
             f"GPU={gpu_label} | "
             f"Samples={samples} (min={min_samples}) | "
+            f"Adaptive=0.05 | "
             f"Tile={tile_size} | "
-            f"Denoiser={denoiser}"
+            f"Denoiser={denoiser} | "
+            f"FastGI=ON"
         )
-        self._logger.info(message=mgs)
+
+        self._logger.info(message=msg)
 
     def get_scene(self) -> Any:
         return bpy.context.scene

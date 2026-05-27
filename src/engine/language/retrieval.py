@@ -11,15 +11,9 @@ class LanguageRetrieval:
 
     def retrieve_glosses(self, text_input: str) -> pd.DataFrame:
         cleaned_text = text_input.strip()
-        self._logger.info(
-            message=f"cleaned_text: {cleaned_text}",
-            module="LanguageRetrieval.retrieve_glosses",
-        )
 
         glosses = cleaned_text.split()
-        self._logger.info(
-            message=f"glosses: {glosses}", module="LanguageRetrieval.retrieve_glosses"
-        )
+
         filepath = self._cfg.get_path(self._cfg.METADATA_PATH)
         if not filepath.exists():
             msg = f"Path: {filepath}"
