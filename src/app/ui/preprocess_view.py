@@ -30,14 +30,14 @@ class PreprocessView:
                         )
 
                         with gr.Row():
-                            # selected = gr.Textbox(label="selected_frame", interactive=True)
                             gloss = gr.Textbox(label="gloss", interactive=True)
                             frame_start = gr.Number(
                                 label="frame_start", interactive=True
                             )
                             frame_end = gr.Number(label="frame_end", interactive=True)
 
-                extract_keypoint_btn = gr.Button("Extract Keypoints", variant="primary")
+                # extract_keypoint_btn =
+                gr.Button("Extract Keypoints", variant="primary")
 
                 with gr.Row():
                     with gr.Column(scale=1):
@@ -50,9 +50,8 @@ class PreprocessView:
                             sources=None,
                         )
                     with gr.Column(scale=2):
-                        keypoint_result = gr.Textbox(
-                            label="keypoint_result", interactive=False
-                        )
+                        # keypoint_result =
+                        gr.Textbox(label="keypoint_result", interactive=False)
 
                 reconstruct_mesh_btn = gr.Button("Reconstructe Mesh", variant="primary")
                 with gr.Row():
@@ -66,9 +65,8 @@ class PreprocessView:
                             sources=None,
                         )
                     with gr.Column(scale=2):
-                        reconstruct_result = gr.Textbox(
-                            label="reconstruct_result", interactive=False
-                        )
+                        # reconstruct_result =
+                        gr.Textbox(label="reconstruct_result", interactive=False)
 
                 save_btn = gr.Button("Save Data", variant="primary")
 
@@ -82,7 +80,6 @@ class PreprocessView:
                     gloss,
                     frame_start,
                     frame_end,
-                    # selected,
                 ],
             )
 
@@ -101,5 +98,4 @@ class PreprocessView:
             save_btn.click(
                 fn=self._controller.save_data_controller,
                 inputs=[vid, gloss, frame_rate, num_frames, frame_start, frame_end],
-                # outputs=[],
             )

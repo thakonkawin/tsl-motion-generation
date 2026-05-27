@@ -4,8 +4,6 @@ import gradio as gr
 
 from src.engine.preprocess.dataset_io import DatasetIO
 from src.engine.preprocess.smplx_estimator import SMPLXEstimator
-
-# from gradio.routes import App
 from src.engine.preprocess.video_pipeline import VideoPipeline
 from src.utils.config import AppConfig
 from src.utils.logger import Logger
@@ -82,7 +80,6 @@ class PreprocessController:
         num_frames: int,
         frame_start: int,
         frame_end: int,
-        # viz_video,
     ) -> None:
         try:
             if vid == "":

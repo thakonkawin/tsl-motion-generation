@@ -10,61 +10,6 @@ class SMPLXEstimator:
         self._logger = Logger()
         self._cfg = AppConfig()
 
-    # def smplx_estimator(self, video_id: str, frame_rate: int) -> Path:
-
-    #     script_path = self._cfg.get_path(self._cfg.INFERENCE_SMPLESTX_SCRIPT)
-
-    #     input_path = self._cfg.get_path(
-    #         self._cfg.TMP_UPLOAD_VIDEO_DIR / f"{video_id}.mp4"
-    #     )
-
-    #     if not input_path.exists():
-    #         msg = f"Input video not found: {input_path}"
-    #         self._logger.error(message=msg, module="SMPLXEstimator.smplx_estimator")
-    #         raise FileNotFoundError(msg)
-
-    #     cmd = [
-    #         "bash",
-    #         str(script_path),
-    #         "smplest_x_h",
-    #         str(input_path),
-    #         str(frame_rate),
-    #     ]
-
-    #     try:
-    #         result = subprocess.run(
-    #             cmd,
-    #             check=True,
-    #             capture_output=True,
-    #             text=True,
-    #             timeout=300,
-    #         )
-
-    #         self._logger.info(
-    #             message=result.stdout, module="SMPLXEstimator.smplx_estimator"
-    #         )
-
-    #         result_path = self._cfg.get_path(
-    #             self._cfg.TMP_MESH_DIR / f"result_{video_id}.mp4"
-    #         )
-
-    #         if not result_path.exists():
-    #             msg = f"Result video not found: {result_path}"
-    #             self._logger.error(message=msg, module="SMPLXEstimator.smplx_estimator")
-    #             raise FileNotFoundError(msg)
-
-    #         return result_path
-
-    #     except subprocess.CalledProcessError as e:
-    #         msg = f"SMPLest-X inference failed: {e.stderr}"
-    #         self._logger.error(message=msg, module="SMPLXEstimator.smplx_estimator")
-    #         raise RuntimeError(msg) from e
-
-    #     except subprocess.TimeoutExpired as e:
-    #         msg = "SMPLest-X inference timeout"
-    #         self._logger.error(message=msg, module="SMPLXEstimator.smplx_estimator")
-    #         raise TimeoutError(msg) from e
-
     def smplx_estimator(self, video_id: str, frame_rate: int) -> Path:
 
         script_path = self._cfg.get_path(self._cfg.INFERENCE_SMPLESTX_SCRIPT)

@@ -1,5 +1,6 @@
 import sys
 import traceback
+from pathlib import Path
 
 from src.engine.visualizations.renderer import Renderer
 from src.utils.config import AppConfig
@@ -8,12 +9,13 @@ from src.utils.config import AppConfig
 def main():
     try:
         sign_id = sys.argv[1]
+        target_path = sys.argv[2]
 
         print("[SCRIPT] Start rendering...")
         cfg = AppConfig()
 
         motion_list = cfg.get_list_file_paths(
-            path=cfg.TMP_MOTION_GLOSS_DIR, vid=sign_id, ext=".pkl"
+            path=Path(target_path), vid=sign_id, ext=".pkl"
         )
 
         renderer = Renderer(

@@ -1,6 +1,4 @@
 import shutil
-
-# import imageio
 import subprocess
 import uuid
 from pathlib import Path

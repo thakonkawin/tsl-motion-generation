@@ -31,7 +31,6 @@ class Text2MotionView:
                         autoplay=False,
                     )
 
-                    # histoy list video generated
             gallery = gr.Gallery(
                 value=self._controller.get_recent_controller(),
                 label="Recents",

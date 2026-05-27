@@ -9,7 +9,3 @@ class DocumentView:
 
         with gr.Tab("Documents"):
             gr.Markdown("## Documents")
-            # btn_home = gr.Button("🏠 Home")
-            # btn_users = gr.Button("👤 Users")
-            # btn_reports = gr.Button("📊 Reports")
-            # btn_settings = gr.Button("⚙️ Settings")

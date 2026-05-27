@@ -216,19 +216,16 @@ class DatasetIO:
         except Exception as e:
             raise RuntimeError(str(e))
 
-    # @staticmethod
     def _rollback_vertices(self, video_id: str):
         with h5py.File(self._cfg.get_path(self._cfg.DATASET_PATH), "a") as h5f:
             if video_id in h5f:
                 del h5f[video_id]
 
-    # @staticmethod
     def _rollback_keypoints(self, video_id: str):
         with h5py.File(self._cfg.get_path(self._cfg.DATASET_PATH), "a") as h5f:
             if video_id in h5f:
                 del h5f[video_id]
 
-    # @staticmethod
     def _rollback_csv(self, video_id: str):
         path = self._cfg.get_path(self._cfg.METADATA_PATH)
         if not path.exists():
@@ -334,17 +331,3 @@ class DatasetIO:
             json.dump(data, f, ensure_ascii=False, indent=2)
 
         return data
-
-        # Find files
-
-        # kp_paths = (PathManager.get_tmp_keypoint_json_paths(video_id))
-        # if not pkl_paths or not kp_paths:
-        #     return False, "⚠️ No dataset files"
-
-        # # Save keypoints
-        # keypoint_result = _save_keypoints(paths=kp_paths, video_id=video_id)
-        # if not keypoint_result.success:
-        #     tx.rollback()
-        # return error_result(keypoint_result.error_code, keypoint_result.message)
-
-        # tx.add_rollback(_rollback_keypoints, video_id)

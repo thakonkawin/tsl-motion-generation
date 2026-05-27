@@ -1,9 +1,14 @@
-import time
+import traceback
+from pathlib import Path
 from typing import Any
 
 import gradio as gr
 
+from src.engine.generations.motion_generator import MotionGenerator
+from src.engine.language.retrieval import LanguageRetrieval
 from src.engine.preprocess.dataset_io import DatasetIO
+from src.engine.preprocess.video_pipeline import VideoPipeline
+from src.engine.visualizations.renderer import Renderer
 from src.utils.config import AppConfig
 from src.utils.logger import Logger
 
@@ -13,47 +18,78 @@ class Text2MotionController:
         self._cfg = AppConfig()
         self._logger = Logger()
         self._dataset_io = DatasetIO()
+        self._motion_generator = MotionGenerator()
+        self._lang_retrieval = LanguageRetrieval()
+        self._video_pipeline = VideoPipeline()
 
-    def generate_tsl_controller(self, text_input: str) -> str | None:
+        # progress = gr.Progress()
+        # total_frames = 100
 
-        if text_input == "":
-            gr.Warning("text is empty")
-            return None
+        # for i in range(total_frames):
+        #     time.sleep(0.05)
 
-        progress = gr.Progress()
-        total_frames = 100
+        #     percent = (i + 1) / total_frames
 
-        for i in range(total_frames):
-            time.sleep(0.05)
+        #     progress(percent, desc=f"Rendering .... {i + 1}/{total_frames} frame")
 
-            percent = (i + 1) / total_frames
+    def generate_tsl_controller(self, text_input: str) -> Path | None:
 
-            progress(percent, desc=f"Rendering .... {i + 1}/{total_frames} frame")
+        try:
+            self._logger.info(f"Retrieving glosses... {text_input}")
 
-        return "/home/thakon/workspaces/tsl-motion-generation/example/angry_tsl.mp4"
+            gloss_sequence = self._lang_retrieval.retrieve_glosses(
+                text_input=text_input
+            )
 
-        # start = time.time()
-        # cleaned_text = text_input.strip()
+            if gloss_sequence.empty:
+                msg = f"Gloss sequence is empty {text_input}"
+                self._logger.error(
+                    msg, module="generate_tsl_controller.retrieve_glosses"
+                )
+                gr.Error(message=msg)
 
-        # glosses = cleaned_text.split()
+            self._logger.info("Generating motion...")
 
-        # # result_query = DatasetService.search_gloss_sequence(glosses=glosses)
-        # # if not result_query.success:
-        # #     raise gr.Error(result_query.message)
+            motion_list, motion_id, frame_rate, _ = (
+                self._motion_generator.generate_sentence_motion(
+                    gloss_sequence=gloss_sequence, gender="neutral"
+                )
+            )
 
-        # # result = RenderService.render_sentence(df=result_query.data)
-        # # if not result.success:
-        # #     raise gr.Error(result.message)
+            self._logger.info(f"motion_id={motion_id}")
+            self._logger.info(f"motion_list length={len(motion_list)}")
 
-        # elapsed = time.time() - start
-        # message = f"Time Redering: {elapsed / 60:.2f} นาที"
-        # self._logger.success(
-        #     message=message, module="SentenceController.generate_tsl_controller"
-        # )
+            if len(motion_list) > 0:
+                self._logger.info(f"first motion={motion_list[0]}")
 
-        # return result.data, cleaned_text
-        #
-        #
+            self._logger.info("Rendering...")
+            renderer = Renderer(
+                motion_id=motion_id,
+                motion_list=motion_list,
+                resolution=(512, 512),
+            )
+            renderer.run(
+                sign_id=motion_id, target_path=self._cfg.TMP_MOTION_SENTENCE_DIR
+            )
+
+            self._logger.info("Converting images to video...")
+            output_path = self._video_pipeline.images_to_video(
+                motion_id=motion_id,
+                frame_rate=frame_rate,
+            )
+
+            if output_path is None:
+                self._logger.error("Video generation failed")
+                gr.Error(message="Video generation failed")
+                return None
+
+            self._logger.info("Done!")
+            return output_path
+
+        except Exception as e:
+            self._logger.error(f"generate_tsl_controller error: {e!r}")
+            self._logger.error(traceback.format_exc())
+            gr.Error(message=str(e))
 
     def on_video_change_controller(
         self, motion_path: str, sentence: str

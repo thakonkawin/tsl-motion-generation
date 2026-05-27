@@ -69,9 +69,10 @@ class MotionGenerator:
 
     def generate_sentence_motion(
         self, gloss_sequence: pd.DataFrame, gender: str
-    ) -> list:
+    ) -> tuple[list, str, int, int]:
 
         motions = self._set_frame_transition(data=gloss_sequence)
+
         motion_id = str(uuid.uuid4())
 
         motion_paths = []
@@ -79,21 +80,23 @@ class MotionGenerator:
         frame_number = 0
 
         for _, row in motions.iterrows():
-            motion_data = self._dataset_io.load_motion_data(sign_id=motion_id)
-
             sign_id = str(row["sign_id"])
+
+            motion_data = self._dataset_io.load_motion_data(sign_id=sign_id)
+
             group = cast(h5py.Group, motion_data[sign_id])
             vertices_group = cast(h5py.Group, group["vertices"])
 
             start_frame = cast(int, row["frame_start"])
             end_frame = cast(int, row["frame_end"])
-            frame_rate = cast(int, row["fps"])
-            # loop ตามช่วง START-END
+            frame_rate = cast(int, row["frame_rate"])
+
             for frame_idx in range(start_frame, end_frame):
                 smplx_params = {}
 
                 for param_name in vertices_group.keys():
                     data = cast(h5py.Dataset, vertices_group[param_name])
+
                     param_data = np.asarray(data[frame_idx])
                     param_data = np.expand_dims(param_data, axis=0)
 
@@ -110,8 +113,9 @@ class MotionGenerator:
                 )
 
                 self._dataset_io.dump_pkl(motion_path, smplx_params)
+
                 motion_paths.append(motion_path)
 
                 frame_number += 1
 
-        return [motion_paths, frame_rate, frame_number]
+        return motion_paths, motion_id, frame_rate, frame_number

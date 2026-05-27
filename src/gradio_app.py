@@ -48,6 +48,6 @@ class Application:
                 str(self._cfg.get_path(path=self._cfg.OUTPUT_DIR)),
                 str(self._cfg.get_path(path=self._cfg.TMP_DIR)),
             ],
-            max_threads=2,
+            max_threads=4,
             debug=True,
         )

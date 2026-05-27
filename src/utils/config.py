@@ -19,7 +19,6 @@ class AppConfig(BaseSettings):
     TMP_UPLOAD_FRAME_DIR: Path = Path("tmp/upload/frames")
     TMP_MESH_DIR: Path = Path("tmp/mesh")
     TMP_SMPLX_PARAMETER_DIR: Path = Path("tmp/smplx_params")
-
     # Output
     OUTPUT_DIR: Path = Path("outputs")
     OUTPUT_FRAME_DIR: Path = Path("outputs/frames")
@@ -53,7 +52,6 @@ class AppConfig(BaseSettings):
         mkdir: bool = False,
     ) -> Path:
         path = Path(path)
-        # ext = ext.lstrip(".")
 
         output_path = self.ROOT_DIR / path / id / f"{index:06d}{ext}"
 

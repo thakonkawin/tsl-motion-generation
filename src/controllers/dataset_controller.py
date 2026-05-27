@@ -1,5 +1,3 @@
-# from logging import exception
-
 from pathlib import Path
 
 import gradio as gr
@@ -9,12 +7,14 @@ from src.engine.generations.motion_generator import MotionGenerator
 from src.engine.preprocess.dataset_io import DatasetIO
 from src.engine.preprocess.video_pipeline import VideoPipeline
 from src.engine.visualizations.renderer import Renderer
+from src.utils.config import AppConfig
 from src.utils.logger import Logger
 
 
 class DatasetController:
     def __init__(self) -> None:
         self._logger = Logger()
+        self._cfg = AppConfig()
         self._dataset_io = DatasetIO()
         self._motion_generator = MotionGenerator()
         self._video_pipeline = VideoPipeline()
@@ -73,7 +73,7 @@ class DatasetController:
                 motion_list=motion_list,
                 resolution=(512, 512),
             )
-            renderer.run(sign_id=sign_id)
+            renderer.run(sign_id=sign_id, target_path=self._cfg.TMP_MOTION_GLOSS_DIR)
 
             self._logger.info("Converting to video...")
             ouput_path = self._video_pipeline.images_to_video(
