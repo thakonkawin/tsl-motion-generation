@@ -1,5 +1,5 @@
 /assets
-/example
+**/example
 /temp_local
 __pycache__/
 **/.DS_Store
@@ -7,7 +7,7 @@ __pycache__/
 **/blender
 **/.gradio
 /motions
-/outputs
+**/outputs
 /tests
 **/data
 **/upload

@@ -32,66 +32,32 @@ def parse_args():
     return args
 
 
-# def save_smplx_params_correct(out, save_path):
-
-#     def to_np(x):
-#         return x.detach().cpu().numpy()
-
-#     global_orient = to_np(out["smplx_root_pose"]).reshape(1, 3).astype(np.float32)
-
-#     global_orient[:, 0] += np.pi  # flip 180° around X
-
-#     data = {
-#         "global_orient": global_orient,
-#         "body_pose": to_np(out["smplx_body_pose"]).reshape(1, -1).astype(np.float32),
-#         "left_hand_pose": to_np(out["smplx_lhand_pose"])
-#         .reshape(1, -1)
-#         .astype(np.float32),
-#         "right_hand_pose": to_np(out["smplx_rhand_pose"])
-#         .reshape(1, -1)
-#         .astype(np.float32),
-#         "betas": to_np(out["smplx_shape"]).reshape(1, -1).astype(np.float32),
-#         "expression": to_np(out["smplx_expr"]).reshape(1, -1).astype(np.float32),
-#         "transl": np.zeros((1, 3), dtype=np.float32),
-#         "gender": "neutral",
-#         "jaw_pose": to_np(out["smplx_jaw_pose"]).reshape(1, 3).astype(np.float32),
-#         "leye_pose": np.zeros((1, 3), dtype=np.float32),
-#         "reye_pose": np.zeros((1, 3), dtype=np.float32),
-#     }
-
-
-#     with open(save_path, "wb") as f:
-#         pickle.dump(data, f)
-#
 def save_smplx_params_correct(out, save_path):
-    def to_np(x, expected_size):
-        arr = x.detach().cpu().float().numpy()  # float() ก่อน numpy
-        arr = np.array(arr, dtype=np.float32)  # force dtype
-        arr = arr.flatten()  # (1, N) → (N,)
-        assert arr.size == expected_size, f"Expected {expected_size}, got {arr.size}"
-        return arr
 
-    global_orient = to_np(out["smplx_root_pose"], 3)
-    global_orient[0] += np.pi
+    def to_np(x):
+        return x.detach().cpu().numpy()
+
+    global_orient = to_np(out["smplx_root_pose"]).reshape(1, 3).astype(np.float32)
+
+    global_orient[:, 0] += np.pi  # flip 180° around X
 
     data = {
         "global_orient": global_orient,
-        "body_pose": to_np(out["smplx_body_pose"], 63),
-        "left_hand_pose": to_np(out["smplx_lhand_pose"], 45),
-        "right_hand_pose": to_np(out["smplx_rhand_pose"], 45),
-        "betas": to_np(out["smplx_shape"], 10),
-        "expression": to_np(out["smplx_expr"], 10),
-        "transl": np.zeros(3, dtype=np.float32),
+        "body_pose": to_np(out["smplx_body_pose"]).reshape(1, -1).astype(np.float32),
+        "left_hand_pose": to_np(out["smplx_lhand_pose"])
+        .reshape(1, -1)
+        .astype(np.float32),
+        "right_hand_pose": to_np(out["smplx_rhand_pose"])
+        .reshape(1, -1)
+        .astype(np.float32),
+        "betas": to_np(out["smplx_shape"]).reshape(1, -1).astype(np.float32),
+        "expression": to_np(out["smplx_expr"]).reshape(1, -1).astype(np.float32),
+        "transl": np.zeros((1, 3), dtype=np.float32),
         "gender": "neutral",
-        "jaw_pose": to_np(out["smplx_jaw_pose"], 3),
-        "leye_pose": np.zeros(3, dtype=np.float32),
-        "reye_pose": np.zeros(3, dtype=np.float32),
+        "jaw_pose": to_np(out["smplx_jaw_pose"]).reshape(1, 3).astype(np.float32),
+        "leye_pose": np.zeros((1, 3), dtype=np.float32),
+        "reye_pose": np.zeros((1, 3), dtype=np.float32),
     }
-
-    # Verify ก่อน save
-    for k, v in data.items():
-        if isinstance(v, np.ndarray):
-            print(f"[VERIFY] {k}: shape={v.shape}, dtype={v.dtype}")
 
     with open(save_path, "wb") as f:
         pickle.dump(data, f)

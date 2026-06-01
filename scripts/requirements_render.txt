@@ -1,8 +1,0 @@
-h5py
-pandas
-gradio
-bpy==5.0.1
-opencv-python
-numpy==1.26.4
-pydantic_settings
-fake-bpy-module-latest

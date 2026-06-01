@@ -29,13 +29,8 @@ class Renderer:
         self._blender.configure_render_quality(scene=scene, resolution=self.resolution)
 
         # Armature
-        armature = self._blender.get_first_object(obj_type="ARMATURE")
-        if armature is None:
-            msg = "No ARMATURE found in scene — SMPL-X setup required."
-            self._logger.error(message=msg, module="Renderer.render")
-            raise RuntimeError(msg)
-
-        self._blender.set_active(obj=armature)
+        smplx_obj = self._blender.get_object("SMPLX-mesh-neutral")
+        self._blender.set_active(smplx_obj)
 
         # Render Loop
         total_frames = len(self.motion_list)

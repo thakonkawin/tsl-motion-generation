@@ -1,5 +1,5 @@
 import os
-from typing import Any
+from typing import Any, Tuple
 
 import bpy
 
@@ -22,12 +22,17 @@ class Blender:
         zip_file = self._cfg.get_path(path=self._cfg.BLEND_ADDON_ZIP)
         if not zip_file.exists():
             msg = f"Addon zip not found: {zip_file}"
-            self._logger.error(message=msg, module="Blender._install_addon")
+            self._logger.error(message=msg, module="Blender.install_addon")
             raise FileNotFoundError(msg)
 
-        bpy.ops.preferences.addon_install(filepath=str(zip_file))
+        # เพิ่ม overwrite=True ตามสคริปต์ใหม่ของคุณ
+        bpy.ops.preferences.addon_install(filepath=str(zip_file), overwrite=True)
         bpy.ops.preferences.addon_enable(module=addon_name)
         bpy.ops.wm.save_userpref()
+
+    def get_object(self, name: str) -> Any:
+        """ดึงวัตถุด้วยชื่อโดยตรง (เช่น 'SMPLX-mesh-neutral' หรือ 'Camera')"""
+        return bpy.data.objects.get(name)
 
     def get_first_object(self, obj_type: str) -> Any:
         for obj in bpy.context.scene.objects:
@@ -38,16 +43,22 @@ class Blender:
     def set_active(self, obj: Any) -> None:
         if obj is None:
             msg = "Object is None"
-            self._logger.error(message=msg, module="Blender._install_addon")
+            self._logger.error(message=msg, module="Blender.set_active")
             raise ValueError(msg)
 
+        # ป้องกันไว้ก่อนเผื่อไฟล์เปิดมาแล้วค้างอยู่ที่โหมดอื่น (ย้ายมาโหมด OBJECT)
+        if bpy.context.active_object and bpy.context.active_object.mode != "OBJECT":
+            bpy.ops.object.mode_set(mode="OBJECT")
+
+        # เคลียร์การเลือกวัตถุอื่นๆ ทั้งหมดใน Scene
         bpy.ops.object.select_all(action="DESELECT")
+
+        # เลือกวัตถุและตั้งให้เป็น Active Object
         obj.select_set(True)
         bpy.context.view_layer.objects.active = obj
         bpy.context.view_layer.update()
 
     def set_addon(self) -> None:
-
         self._logger.info(message="[Render] Opening blend file...")
         bpy.ops.wm.open_mainfile(
             filepath=str(self._cfg.get_path(path=self._cfg.BLEND_FILE))
@@ -60,7 +71,7 @@ class Blender:
                 directory=os.path.abspath(str(addon_data_dir))
             )
 
-    def configure_render_quality(self, scene, resolution: tuple) -> None:
+    def configure_render_quality(self, scene: Any, resolution: Tuple[int, int]) -> None:
         # Engine
         scene.render.engine = "CYCLES"
 
@@ -70,12 +81,7 @@ class Blender:
         BACKEND_PRIORITY = ["OPTIX", "CUDA", "HIP", "ONEAPI", "METAL"]
 
         BACKEND_PROFILES = {
-            "OPTIX": (
-                2048,  # tile size
-                24,  # samples
-                8,  # min samples
-                "OPTIX",  # denoiser
-            ),
+            "OPTIX": (2048, 24, 8, "OPTIX"),
             "CUDA": (1024, 48, 16, "OPENIMAGEDENOISE"),
             "HIP": (1024, 48, 16, "OPENIMAGEDENOISE"),
             "ONEAPI": (512, 64, 24, "OPENIMAGEDENOISE"),
@@ -147,22 +153,16 @@ class Blender:
 
         scene.cycles.samples = samples
         scene.cycles.adaptive_min_samples = min_samples
-
-        # Faster adaptive stop
         scene.cycles.adaptive_threshold = 0.05
 
         # ── Denoising ───────────────────────────────────────────────
         scene.cycles.use_denoising = True
         scene.cycles.denoiser = denoiser
-
-        # FAST = เร็วกว่า ACCURATE พอสมควร
         scene.cycles.denoising_prefilter = "FAST"
-
         scene.cycles.use_preview_denoising = False
 
         # ── Lighting / Noise ────────────────────────────────────────
         scene.cycles.use_light_tree = True
-
         scene.cycles.sample_clamp_indirect = 2.0
         scene.cycles.blur_glossy = 1.0
 
@@ -173,21 +173,16 @@ class Blender:
 
         # ── Bounces ─────────────────────────────────────────────────
         scene.cycles.max_bounces = 4
-
         scene.cycles.diffuse_bounces = 1
         scene.cycles.glossy_bounces = 2
         scene.cycles.transmission_bounces = 2
-
         scene.cycles.volume_bounces = 0
         scene.cycles.transparent_max_bounces = 2
 
         # ── Performance ─────────────────────────────────────────────
         scene.cycles.use_auto_tile = False
         scene.cycles.tile_size = tile_size
-
         scene.render.threads_mode = "AUTO"
-
-        # สำคัญมากสำหรับ animation/batch render
         scene.render.use_persistent_data = True
 
         # ── BVH Optimization ────────────────────────────────────────
@@ -196,11 +191,7 @@ class Blender:
 
         # ── Texture Optimization ────────────────────────────────────
         scene.render.use_simplify = True
-
-        # ลด subdivision render
         scene.render.simplify_subdivision_render = 1
-
-        # จำกัด texture สูงสุด
         scene.cycles.texture_limit_render = "4096"
 
         # ── Disable Unused Features ─────────────────────────────────
@@ -221,7 +212,6 @@ class Blender:
             f"Denoiser={denoiser} | "
             f"FastGI=ON"
         )
-
         self._logger.info(message=msg)
 
     def get_scene(self) -> Any:
@@ -231,4 +221,13 @@ class Blender:
         bpy.ops.object.smplx_load_pose(filepath=motion_path)  # pyright: ignore[reportAttributeAccessIssue]
 
     def render(self) -> None:
+        """สั่ง Render และบันทึกไฟล์ (ถ้าส่ง path มาจะใช้ save_render อัตโนมัติ)"""
         bpy.ops.render.render(write_still=True)
+        # if output_path:
+        #     # ตรวจสอบและสร้างโฟลเดอร์ปลายทางหากยังไม่มี
+        #     os.makedirs(os.path.dirname(output_path), exist_ok=True)
+        #     bpy.data.images["Render Result"].save_render(output_path)
+        #     self._logger.info(message=f"[Render] Saved to {output_path}")
+
+    # def render(self) -> None:
+    #     bpy.ops.render.render(write_still=True)
