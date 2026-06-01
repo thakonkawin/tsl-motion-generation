@@ -16,5 +16,4 @@ __pycache__/
 **/pretrained_models
 **/tmp
 *.egg-info/
-*sapiens2_host/
-**/sapiens2_host
+***/sapiens2_host
