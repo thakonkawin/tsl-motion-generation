@@ -25,10 +25,10 @@ class AppConfig(BaseSettings):
     OUTPUT_VIDEO_DIR: Path = Path("outputs/videos")
     OUTPUT_JSON_PATH: Path = Path("outputs/recents/recent.json")
     # Blender
-    BLEND_ADDON_NAME: str = "smplx_blender_addon"
-    BLEND_ADDON_ZIP: Path = Path("assets/blender/smplx_blender_addon_300_20220623.zip")
-    BLEND_FILE: Path = Path("assets/blender/tsl_4d_model.blend")
-    BLEND_ADDON_DATA_DIR: Path = Path("assets/blender/smplx_blender_addon/data")
+    BLEND_ADDON_NAME: str = "smplx_blender_addon_custom"
+    BLEND_ADDON_ZIP: Path = Path("assets/blender/smplx_blender_addon_custom.zip")
+    BLEND_FILE: Path = Path("assets/blender/tsl_model.blend")
+    BLEND_ADDON_DATA_DIR: Path = Path("assets/blender/smplx_blender_addon_custom/data")
     RENDER_SCRIPT_PATH: Path = Path("src/engine/visualizations/render_script.py")
     # UI
     CSS_PATH: Path = Path("src/app/components/styles.css")

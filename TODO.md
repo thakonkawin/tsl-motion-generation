@@ -1,6 +1,21 @@
 ## Todo:
-# Dead line 21-05-2026
-- tooltip (selected frame setting ui) for mark frame_start, frame_end to easy ✅
-- sentences ui and render ✅
-- render solution for speed up to generate video ✅
-- keypoint extracttion with sepains and manual remark point
+# Dead line 11-06-2026
+- keypoint extracttion with sepains2 and manual remark point
+- Fit smplx from keypoints
+
+
+ข้าวผัด ฉัน กิน
+กาแฟ ร้อน พ่อ ดื่ม
+เสื้อผ้า แม่ ซัก
+รูป การ์ตูน น้องสาว วาด
+รถยนต์ พี่ชาย ขับ
+ต้นไม้ ฉัน ปลูก
+อาหาร อร่อย ยาย ทำ
+ท้องฟ้า นก บิน
+เด็กทารก ร้องไห้ เสียงดัง
+โรงเรียน ฝนตก
+ถนน น้ำ ท่วม
+พรุ่งนี้ เที่ยว ฉัน ไป
+วันนี้ อากาศ ร้อน มาก
+เมื่อวาน ทำงาน พ่อ ไป ไม่
+ฉัน ชอบ สีแดง
