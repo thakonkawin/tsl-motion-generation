@@ -7,12 +7,16 @@
 # SAPIENS_ROOT="$(cd "$(dirname "$(realpath "$0")")" && pwd)"
 SAPIENS_ROOT="$(cd "$(dirname "$(realpath "$0")")/../../../.." && pwd)"
 
+PROJECT_ROOT="$(cd "$(dirname "$(realpath "$0")")/../../../../.." && pwd)"
+
+# echo "PROJECT_ROOT=$PROJECT_ROOT"
+
 # -------------------------------------------------------
 # paths หลัก (ปรับได้)
 # -------------------------------------------------------
 SAPIENS_CHECKPOINT_ROOT="${SAPIENS_ROOT}/sapiens2_host"
-INPUT="${SAPIENS_ROOT}/example"
-OUTPUT="${SAPIENS_ROOT}/outputs"
+INPUT="${PROJECT_ROOT}/example/frames"
+OUTPUT="${PROJECT_ROOT}/outputs"
 
 # -------------------------------------------------------
 # Pose model
