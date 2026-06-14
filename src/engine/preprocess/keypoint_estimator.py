@@ -79,9 +79,12 @@ class KeypointEstimator:
                     output="\n".join(output_lines),
                 )
 
+            image_exts = {".jpg", ".jpeg", ".png"}
+            image_paths = sorted(
+                p for p in output_path.iterdir() if p.suffix.lower() in image_exts
+            )
             gallery_items = [
-                (str(path), str(i))
-                for i, path in enumerate(output_path.iterdir(), start=1)
+                (str(path), str(i)) for i, path in enumerate(image_paths, start=1)
             ]
 
             return gallery_items

@@ -55,8 +55,13 @@ class PreprocessView:
                             columns=8,
                             height=400,
                             interactive=True,
-                            elem_id="#keypoint_gallery",
+                            elem_id="keypoint_gallery",
                         )
+
+                # bridge components (ซ่อนไว้) สำหรับ pose editor ฝั่ง frontend
+                kp_payload = gr.Textbox(elem_id="kp_payload", visible=False)
+                kp_result = gr.Textbox(elem_id="kp_result", visible=False)
+                kp_save_btn = gr.Button("kp_save", elem_id="kp_save_btn", visible=False)
 
                 reconstruct_mesh_btn = gr.Button("Reconstructe Mesh", variant="primary")
                 with gr.Row():
@@ -97,6 +102,23 @@ class PreprocessView:
                 fn=self._controller.extract_keypoint_controller,
                 inputs=[vid],
                 outputs=[keypoint_gallery],
+            )
+
+            keypoint_gallery.select(
+                fn=self._controller.open_keypoint_editor,
+                inputs=[vid],
+                outputs=[kp_payload],
+            ).then(
+                fn=None,
+                inputs=[kp_payload],
+                outputs=None,
+                js="(p) => window.__kpOpen(p)",
+            )
+
+            kp_save_btn.click(
+                fn=self._controller.save_keypoint_edits,
+                inputs=[kp_result],
+                outputs=None,
             )
 
             reconstruct_mesh_btn.click(

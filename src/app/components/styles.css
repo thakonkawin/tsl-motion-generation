@@ -83,4 +83,134 @@
 }
 #keypoint_gallery .thumbnail-item {
     position: relative;
+    cursor: pointer;
+}
+
+/* ===== Pose & hands keypoint editor (modal) ===== */
+.kp-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    background: rgba(0, 0, 0, 0.75);
+}
+.kp-overlay.kp-open {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.kp-modal {
+    display: flex;
+    flex-direction: column;
+    width: 92vw;
+    height: 90vh;
+    background: #1f2229;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+}
+.kp-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: #2a2d36;
+    border-bottom: 1px solid #3a3d46;
+}
+.kp-title {
+    font-weight: bold;
+    color: #fff;
+}
+.kp-spacer {
+    flex: 1;
+}
+.kp-zoom {
+    color: #cfd2da;
+    min-width: 48px;
+    text-align: center;
+}
+.kp-btn {
+    background: #3a3d46;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: 6px 12px;
+    cursor: pointer;
+    font-size: 14px;
+}
+.kp-btn:hover {
+    background: #474b56;
+}
+.kp-btn.kp-ok {
+    background: #19c37d;
+}
+.kp-btn.kp-ok:hover {
+    background: #15a86a;
+}
+.kp-btn.kp-cancel {
+    background: #5a5d66;
+}
+.kp-viewport {
+    position: relative;
+    flex: 1;
+    overflow: hidden;
+    background: #15171c;
+    cursor: grab;
+}
+.kp-viewport.kp-panning {
+    cursor: grabbing;
+}
+.kp-stage {
+    position: absolute;
+    top: 0;
+    left: 0;
+    transform-origin: 0 0;
+}
+.kp-img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    user-select: none;
+    -webkit-user-drag: none;
+}
+.kp-svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+}
+.kp-edge {
+    stroke: rgba(255, 255, 255, 0.55);
+    stroke-linecap: round;
+}
+.kp-joint {
+    cursor: grab;
+}
+.kp-joint.kp-active {
+    cursor: grabbing;
+}
+.kp-dot {
+    stroke: #000;
+    stroke-width: 0.5;
+}
+.kp-joint:hover .kp-dot {
+    stroke: #fff;
+    stroke-width: 1;
+}
+.kp-label {
+    paint-order: stroke;
+    stroke: #000;
+    font-weight: 600;
+    user-select: none;
+    dominant-baseline: middle;
+}
+.kp-hint {
+    padding: 6px 12px;
+    background: #2a2d36;
+    color: #aab0bb;
+    font-size: 12px;
+    text-align: center;
+    border-top: 1px solid #3a3d46;
 }

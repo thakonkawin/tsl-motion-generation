@@ -34,6 +34,7 @@ class AppConfig(BaseSettings):
     RENDER_SCRIPT_PATH: Path = Path("src/engine/visualizations/render_script.py")
     # UI
     CSS_PATH: Path = Path("src/app/components/styles.css")
+    KEYPOINT_EDITOR_JS: Path = Path("src/app/components/keypoint_editor.js")
     # Models
     INFERENCE_SMPLESTX_SCRIPT: Path = Path("scripts/inference_smplestx.sh")
     INFERENCE_SAPIENS2_SCRIPT: Path = Path("scripts/inference_sapiens2.sh")

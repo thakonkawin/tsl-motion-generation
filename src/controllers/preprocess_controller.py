@@ -4,6 +4,7 @@ import gradio as gr
 
 # from gradio.components import gallery
 from src.engine.preprocess.dataset_io import DatasetIO
+from src.engine.preprocess.keypoint_editor_io import KeypointEditorIO
 from src.engine.preprocess.keypoint_estimator import KeypointEstimator
 from src.engine.preprocess.smplx_estimator import SMPLXEstimator
 from src.engine.preprocess.video_pipeline import VideoPipeline
@@ -19,6 +20,7 @@ class PreprocessController:
         self._keypoint_estimator = KeypointEstimator()
         self._smplx_estimator = SMPLXEstimator()
         self._dataset_io = DatasetIO()
+        self._keypoint_editor = KeypointEditorIO()
 
     def sign_video_change(self):
         return (
@@ -68,6 +70,31 @@ class PreprocessController:
             gr.Error(f"Unexpected error during extract keypo: {e}")
 
         return []
+
+    def open_keypoint_editor(self, video_id: str, evt: gr.SelectData) -> str:
+        """กดรูปใน keypoint_gallery -> สร้าง payload ให้ pose editor เปิดขึ้นมา"""
+        if not video_id:
+            gr.Warning("Please extract keypoints first.")
+            return ""
+
+        try:
+            return self._keypoint_editor.build_editor_payload(
+                video_id=video_id, frame_index=int(evt.index)
+            )
+        except Exception as e:
+            gr.Warning(f"Cannot open keypoint editor: {e}")
+            return ""
+
+    def save_keypoint_edits(self, result_json: str) -> None:
+        """ปุ่ม OK ใน editor -> เขียนตำแหน่ง joint ที่แก้แล้วกลับลง keypoints_data.json"""
+        if not result_json:
+            return
+
+        try:
+            self._keypoint_editor.apply_edits(result_json)
+            gr.Info("✅ Keypoints updated")
+        except Exception as e:
+            gr.Error(f"Unexpected error while saving keypoints: {e}")
 
     def reconstruct_mesh_human_controller(
         self,

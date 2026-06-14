@@ -40,8 +40,12 @@ class Application:
 
     def run(self) -> None:
         demo = self.build()
+        editor_js = self._cfg.get_path(self._cfg.KEYPOINT_EDITOR_JS).read_text(
+            encoding="utf-8"
+        )
         demo.queue(max_size=10).launch(
             theme=gr.Theme.from_hub("Nymbo/Nymbo_Theme"),
+            head=f"<script>{editor_js}</script>",
             css_paths=self._cfg.get_path(path=self._cfg.CSS_PATH),
             allowed_paths=[
                 str(self._cfg.get_path(path=self._cfg.EXAMPLE_DIR)),
