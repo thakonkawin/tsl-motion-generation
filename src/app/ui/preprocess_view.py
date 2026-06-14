@@ -36,12 +36,12 @@ class PreprocessView:
                             )
                             frame_end = gr.Number(label="frame_end", interactive=True)
 
-                # extract_keypoint_btn =
-                gr.Button("Extract Keypoints", variant="primary")
+                extract_keypoint_btn = gr.Button("Extract Keypoints", variant="primary")
 
                 with gr.Row():
                     with gr.Column(scale=1):
-                        viz_video = gr.Video(
+                        # viz_skeleton_video =
+                        gr.Video(
                             label="Skeleton Video",
                             height=650,
                             elem_id="viz_container",
@@ -50,8 +50,13 @@ class PreprocessView:
                             sources=None,
                         )
                     with gr.Column(scale=2):
-                        # keypoint_result =
-                        gr.Textbox(label="keypoint_result", interactive=False)
+                        keypoint_gallery = gr.Gallery(
+                            label="Extracted Keypoints",
+                            columns=8,
+                            height=400,
+                            interactive=True,
+                            elem_id="#keypoint_gallery",
+                        )
 
                 reconstruct_mesh_btn = gr.Button("Reconstructe Mesh", variant="primary")
                 with gr.Row():
@@ -65,7 +70,6 @@ class PreprocessView:
                             sources=None,
                         )
                     with gr.Column(scale=2):
-                        # reconstruct_result =
                         gr.Textbox(label="reconstruct_result", interactive=False)
 
                 save_btn = gr.Button("Save Data", variant="primary")
@@ -87,6 +91,12 @@ class PreprocessView:
                 fn=self._controller.upload_sign_video_controller,
                 inputs=video_input,
                 outputs=[vid, frame_rate, gallery, num_frames],
+            )
+
+            extract_keypoint_btn.click(
+                fn=self._controller.extract_keypoint_controller,
+                inputs=[vid],
+                outputs=[keypoint_gallery],
             )
 
             reconstruct_mesh_btn.click(

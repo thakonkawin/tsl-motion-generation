@@ -2,7 +2,9 @@ from pathlib import Path
 
 import gradio as gr
 
+# from gradio.components import gallery
 from src.engine.preprocess.dataset_io import DatasetIO
+from src.engine.preprocess.keypoint_estimator import KeypointEstimator
 from src.engine.preprocess.smplx_estimator import SMPLXEstimator
 from src.engine.preprocess.video_pipeline import VideoPipeline
 from src.utils.config import AppConfig
@@ -14,6 +16,7 @@ class PreprocessController:
         self._cfg = AppConfig()
         self._logger = Logger()
         self._video_pipeline = VideoPipeline()
+        self._keypoint_estimator = KeypointEstimator()
         self._smplx_estimator = SMPLXEstimator()
         self._dataset_io = DatasetIO()
 
@@ -40,6 +43,31 @@ class PreprocessController:
         except ValueError as e:
             gr.Warning(str(e))
             return "", 0, [], 0
+
+    def extract_keypoint_controller(
+        self,
+        video_id: str,
+    ) -> list[tuple[str, str]]:
+
+        if not video_id:
+            gr.Warning("Please provide a valid video ID.")
+            return []
+
+        try:
+            gallery_kepoints = self._keypoint_estimator.kepoint_estimator(
+                video_id=video_id
+            )
+
+            # if filepath and filepath.exists():
+            #     return filepath
+
+            # gr.Warning("Mesh reconstruction completed, but output file was not found.")
+            return gallery_kepoints
+
+        except Exception as e:
+            gr.Error(f"Unexpected error during extract keypo: {e}")
+
+        return []
 
     def reconstruct_mesh_human_controller(
         self,

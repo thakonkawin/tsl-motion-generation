@@ -17,8 +17,10 @@ class AppConfig(BaseSettings):
     TMP_MOTION_GLOSS_DIR: Path = Path("tmp/motions/gloss")
     TMP_UPLOAD_VIDEO_DIR: Path = Path("tmp/upload/videos")
     TMP_UPLOAD_FRAME_DIR: Path = Path("tmp/upload/frames")
+    TMP_KEYPOINT_DIR: Path = Path("tmp/keypoints")
     TMP_MESH_DIR: Path = Path("tmp/mesh")
     TMP_SMPLX_PARAMETER_DIR: Path = Path("tmp/smplx_params")
+
     # Output
     OUTPUT_DIR: Path = Path("outputs")
     OUTPUT_FRAME_DIR: Path = Path("outputs/frames")
@@ -34,6 +36,7 @@ class AppConfig(BaseSettings):
     CSS_PATH: Path = Path("src/app/components/styles.css")
     # Models
     INFERENCE_SMPLESTX_SCRIPT: Path = Path("scripts/inference_smplestx.sh")
+    INFERENCE_SAPIENS2_SCRIPT: Path = Path("scripts/inference_sapiens2.sh")
     #
     EXAMPLE_DIR: Path = Path("example")
 

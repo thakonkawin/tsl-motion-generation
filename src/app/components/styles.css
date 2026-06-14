@@ -65,3 +65,22 @@
     margin: 4px;
     width: 100%;
 }
+
+#keypoint_gallery .thumbnail-item {
+    position: relative;
+}
+#keypoint_gallery .thumbnail-item::before {
+    position: absolute;
+    top: 4px;
+    left: 4px;
+    color: #fff;
+    font-size: 12px;
+    font-weight: bold;
+    padding: 2px 6px;
+    border-radius: 999px;
+    z-index: 100;
+    pointer-events: none;
+}
+#keypoint_gallery .thumbnail-item {
+    position: relative;
+}
